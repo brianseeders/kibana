@@ -11,7 +11,7 @@ def workspaceCacheName = { sprintf('%s/%s', it.WORKSPACE_CACHE_DIR, tarName(it) 
 
 def unTar = {
   clearDir(it.WORKSPACE_DIR)
-  dir(envObj.WORKSPACE_CACHE_DIR){
+  dir(it.WORKSPACE_CACHE_DIR){
     sh 'pwd'
     sh 'ls -la'
     sh "tar xfz ${tarName(it)} --strip-components=4 -C ${it.WORKSPACE_DIR}"
@@ -21,7 +21,7 @@ def unTar = {
 def tarGlobs = { "${it.WORKSPACE_DIR}/elasticsearch/* ${it.WORKSPACE_DIR}/${it.JOB_NAME}/*" }
 
 def tarAll = {
-  dir(envObj.WORKSPACE_CACHE_DIR){
+  dir(it.WORKSPACE_CACHE_DIR){
     sh "tar -czf ${it.WORKSPACE_CACHE_NAME} ${tarGlobs(it)}"
   }
 }
