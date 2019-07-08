@@ -5,26 +5,24 @@ def branchName = {
   ).trim()
 }
 
-def tarName = { envObj ->
-  "${envObj.JOB_NAME}-${branchName()}-${envObj.BUILD_ID}.tgz"
-}
+def tarName = { "${it.JOB_NAME}-${branchName()}-${it.BUILD_ID}.tgz" }
 
-def unTar(envObj){
-  clearDir(envObj.WORKSPACE_DIR)
+def workspaceCacheName = { sprintf('%s/%s', it.WORKSPACE_CACHE_DIR, tarName(it) }
+
+def unTar = {
+  clearDir(it.WORKSPACE_DIR)
   dir(envObj.WORKSPACE_CACHE_DIR){
     sh 'pwd'
     sh 'ls -la'
-    sh "tar xfz ${tarName(envObj)} --strip-components=4 -C ${envObj.WORKSPACE_DIR}"
+    sh "tar xfz ${tarName(it)} --strip-components=4 -C ${it.WORKSPACE_DIR}"
   }
 }
 
-def tarGlobs = { envObj ->
-  "${envObj.WORKSPACE_DIR}/elasticsearch/* ${envObj.WORKSPACE_DIR}/${envObj.JOB_NAME}/*"
-}
+def tarGlobs = { "${it.WORKSPACE_DIR}/elasticsearch/* ${it.WORKSPACE_DIR}/${it.JOB_NAME}/*" }
 
-def tarAll = { envObj ->
+def tarAll = {
   dir(envObj.WORKSPACE_CACHE_DIR){
-    sh "tar -czf ${envObj.WORKSPACE_CACHE_NAME} ${tarGlobs(envObj)}"
+    sh "tar -czf ${it.WORKSPACE_CACHE_NAME} ${tarGlobs(it)}"
   }
 }
 
