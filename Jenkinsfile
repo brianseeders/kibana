@@ -34,10 +34,10 @@ pipeline {
           // sh "${CI_DIR}/run_pipeline.sh"
         script {
           def d = load("${env.GROOVY_SRC}/dump.groovy")
-          def t = load("${env.GROOVY_SRC}/tar.groovy")
+          // def t = load("${env.GROOVY_SRC}/tar.groovy")
           d.dumpEnv()
-          d.dumpSize(env.KIBANA_DIR)
-          println "### d.branchName: ${d.branchName()}"
+          // d.dumpSize(env.KIBANA_DIR)
+          // println "### d.branchName: ${d.branchName()}"
           // t.tarAll(env)
           // d.dumpSizes([
           //   "${env.WORKSPACE}",
