@@ -37,6 +37,7 @@ pipeline {
           def t = load("${env.GROOVY_SRC}/tar.groovy")
           d.dumpEnv()
           d.dumpSize(env.KIBANA_DIR)
+          println "### d.branchName: ${d.branchName()}"
           // t.tarAll(env)
           // d.dumpSizes([
           //   "${env.WORKSPACE}",
