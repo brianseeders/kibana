@@ -28,23 +28,23 @@ pipeline {
     stage('Install All-The-Things') {
       agent { label 'linux || immutable' }
       steps {
-        dir("${env.BASE_DIR}"){
-          sh "${CI_DIR}/run_pipeline.sh"
-          script {
-            def d = load("${env.GROOVY_SRC}/dump.groovy")
-            def t = load("${env.GROOVY_SRC}/tar.groovy")
-            d.dumpEnv()
-            createWorkspaceCache()
-            t.tarAll(env)
-            d.dumpSizes([
-              "${env.WORKSPACE}",
-              "${env.WORKSPACE_DIR}/elasticsearch",
-              "${t.workspaceCacheName(env)}"
-            ])
-          }
-          step([$class: 'ClassicUploadStep',
-            credentialsId: env.CREDENTIALS_ID, bucket: env.BUCKET, pattern: env.PATTERN])
-        }
+        mkdirp(env.WORKSPACE_CACHE_DIR)
+        // dir("${env.BASE_DIR}"){
+          // sh "${CI_DIR}/run_pipeline.sh"
+          // script {
+            // def d = load("${env.GROOVY_SRC}/dump.groovy")
+            // def t = load("${env.GROOVY_SRC}/tar.groovy")
+            // d.dumpEnv()
+            // t.tarAll(env)
+            // d.dumpSizes([
+            //   "${env.WORKSPACE}",
+            //   "${env.WORKSPACE_DIR}/elasticsearch",
+            //   "${t.workspaceCacheName(env)}"
+            // ])
+          // }
+          // step([$class: 'ClassicUploadStep',
+          //   credentialsId: env.CREDENTIALS_ID, bucket: ?, pattern: ?])
+        // }
       }
     }
     stage('kibana-intake') {
@@ -52,11 +52,12 @@ pipeline {
       // options { skipDefaultCheckout() }
       steps {
         script {
-          createWorkspaceCache()
+          mkdirp(env.WORKSPACE_CACHE_DIR)
         }
-        step([$class: 'DownloadStep', credentialsId: env.CREDENTIALS_ID,
-          bucketUri: "gs://kibana-ci-artifacts/jobs/${JOB_NAME}/${BUILD_ID}/var/lib/jenkins/.kibana/workspace_cache/JOB_NAME-kibana-automation-pipeline-BUILD_ID-${BUILD_ID}.tgz", localDirectory: "${WORKSPACE_CACHE_DIR}"])
-        script { unTar(env) }
+        // step([$class: 'DownloadStep', credentialsId: env.CREDENTIALS_ID,
+        //   bucketUri: ?
+        //   bucketUri: "gs://kibana-ci-artifacts/jobs/${JOB_NAME}/${BUILD_ID}/var/lib/jenkins/.kibana/workspace_cache/JOB_NAME-kibana-automation-pipeline-BUILD_ID-${BUILD_ID}.tgz", localDirectory: "${WORKSPACE_CACHE_DIR}"])
+        // script { unTar(env) }
 //        dir("${WORKSPACE}"){
 //          sh './test/scripts/jenkins_unit.sh'
 //        }
@@ -90,6 +91,4 @@ def clearDir(String x){
     sh 'rm -rf ./*'
   }
 }
-def createWorkspaceCache(){
-  sh "mkdir -p ${WORKSPACE_CACHE_DIR}"
-}
+def mkdirp = { sh "mkdir -p ${$it}" }
