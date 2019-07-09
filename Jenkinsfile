@@ -21,6 +21,7 @@ pipeline {
     // PR_TARGET_BRANCH = "${ghprbTargetBranch}"
     // PR_AUTHOR = "${ghprbPullAuthorLogin}"
     CREDENTIALS_ID ='kibana-ci-gcs-plugin'
+    KIBANA_DIR = "${WORKSPACE}"
     // BUCKET = "gs://kibana-ci-artifacts/jobs/${JOB_NAME}/${BUILD_NUMBER}"
     // PATTERN = "${FULL_WORKSPACE_CACHE_PATH}"
   }
@@ -31,17 +32,18 @@ pipeline {
         mkdirp(env.WORKSPACE_CACHE_DIR)
         // dir("${env.BASE_DIR}"){
           // sh "${CI_DIR}/run_pipeline.sh"
-          // script {
-            // def d = load("${env.GROOVY_SRC}/dump.groovy")
-            // def t = load("${env.GROOVY_SRC}/tar.groovy")
-            // d.dumpEnv()
-            // t.tarAll(env)
-            // d.dumpSizes([
-            //   "${env.WORKSPACE}",
-            //   "${env.WORKSPACE_DIR}/elasticsearch",
-            //   "${t.workspaceCacheName(env)}"
-            // ])
-          // }
+        script {
+          def d = load("${env.GROOVY_SRC}/dump.groovy")
+          def t = load("${env.GROOVY_SRC}/tar.groovy")
+          d.dumpEnv()
+          d.dumpSize(env.KIBANA_DIR)
+          // t.tarAll(env)
+          // d.dumpSizes([
+          //   "${env.WORKSPACE}",
+          //   "${env.WORKSPACE_DIR}/elasticsearch",
+          //   "${t.workspaceCacheName(env)}"
+          // ])
+        }
           // step([$class: 'ClassicUploadStep',
           //   credentialsId: env.CREDENTIALS_ID, bucket: ?, pattern: ?])
         // }
@@ -91,4 +93,4 @@ def clearDir(String x){
     sh 'rm -rf ./*'
   }
 }
-def mkdirp(){ sh "mkdir -p ${$it}" }
+def mkdirp(x){ sh "mkdir -p ${x}" }

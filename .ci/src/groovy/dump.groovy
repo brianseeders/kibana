@@ -1,8 +1,4 @@
-def dumpSize = {
-  script {
-    sh "du -hcs ${it}"
-  }
-}
+def dumpSize = { sh "du -hcs ${it}" }
 
 def dumpSizes = { xs -> xs.each { dumpSize(it) }
 
