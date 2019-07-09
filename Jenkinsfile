@@ -91,4 +91,4 @@ def clearDir(String x){
     sh 'rm -rf ./*'
   }
 }
-def mkdirp = { sh "mkdir -p ${$it}" }
+def mkdirp(){ sh "mkdir -p ${$it}" }
