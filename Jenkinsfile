@@ -1,4 +1,6 @@
-node {
-  sh "echo hello world"
-  sh 'ls -alh'
+timestamps {
+  node {
+    checkout scm
+    sh 'ls -alh'
+  }
 }
