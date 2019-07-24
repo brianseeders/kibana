@@ -1,6 +1,6 @@
-timestamps {
-  node {
-    checkout scm
-    sh 'ls -alh'
-  }
+node {
+  sh 'date'
+  checkout scm
+  sh 'ls -alh'
+  sh 'date'
 }
