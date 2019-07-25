@@ -2,7 +2,6 @@ pipeline {
     agent any
     options {
         skipDefaultCheckout true
-        timestamps()
         disableResume()
         durabilityHint('PERFORMANCE_OPTIMIZED')
     }
