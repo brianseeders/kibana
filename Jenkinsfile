@@ -1,22 +1,24 @@
-withDocker {
-  def GIT_COMMIT = ''
-  def SCM_VARS = ''
+node {
+  withDocker {
+    def GIT_COMMIT = ''
+    def SCM_VARS = ''
 
-  stage('Git Checkout') {
-    // git branch: 'jenkins-pipeline', credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba', url: 'git@github.com:brianseeders/kibana.git'
-    SCM_VARS = checkout scm
-    // GIT_COMMIT = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%h'").trim()
-    GIT_COMMIT = SCM_VARS.GIT_COMMIT
-  }
+    stage('Git Checkout') {
+      // git branch: 'jenkins-pipeline', credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba', url: 'git@github.com:brianseeders/kibana.git'
+      SCM_VARS = checkout scm
+      // GIT_COMMIT = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%h'").trim()
+      GIT_COMMIT = SCM_VARS.GIT_COMMIT
+    }
 
-  def baseImage = "kibana-base:${GIT_COMMIT}"
+    def baseImage = "kibana-base:${GIT_COMMIT}"
 
-  stage('Build base image') {
-    sh "DOCKER_BUILDKIT=1 docker build -t '${baseImage}' ."
-  }
+    stage('Build base image') {
+      sh "DOCKER_BUILDKIT=1 docker build -t '${baseImage}' ."
+    }
 
-  stage('Linting') {
-    sh "docker run --rm -it ${baseImage} lint:sass"
+    stage('Linting') {
+      sh "docker run --rm -it ${baseImage} lint:sass"
+    }
   }
 }
 
