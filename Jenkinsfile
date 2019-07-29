@@ -23,7 +23,7 @@ node {
 }
 
 def withDocker(closure) {
-  podTemplate(yaml: """
+  podTemplate(inheritFrom: '', label: 'docker', yaml: """
 ---
 apiVersion: v1
 kind: Pod
@@ -67,8 +67,10 @@ spec:
     emptyDir: {}
 """
   ) {
-    container('docker') {
-      closure()
+    node('docker') {
+      container('docker') {
+        closure()
+      }
     }
   }
 }
