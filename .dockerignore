@@ -1,12 +1,13 @@
 /node_modules
 **/node_modules
-.git
+# .git
 /built_assets
 /data
 /.es
 .node_binaries
 /docs
 /Dockerfile
+/Dockerfile*
 
 # from .gitignore below
 .aws-config.json
