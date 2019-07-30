@@ -1,4 +1,4 @@
-FROM node:10.15.2
+FROM node:10.15.2 AS base
 
 # dumb-init
 RUN curl -Lo /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_amd64 \
@@ -16,6 +16,9 @@ RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - 
 WORKDIR /app
 
 RUN groupadd -r kibana && useradd -r -g kibana kibana && mkdir /home/kibana && chown kibana:kibana /home/kibana
+
+FROM base AS builder
+
 RUN chown kibana /app
 USER kibana
 
@@ -66,6 +69,14 @@ RUN yarn install --frozen-lockfile
 COPY --chown=kibana:kibana . /app
 
 RUN yarn kbn bootstrap --frozen-lockfile
+RUN rm -rf node_modules/\@elastic/nodegit/.vscode
+
+FROM base AS final
+
+USER kibana
+
+COPY --from=builder /app /app
 
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--", "yarn"]
 CMD ["start"]
+# CMD ["/bin/bash"]
