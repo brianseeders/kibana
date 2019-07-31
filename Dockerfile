@@ -1,3 +1,6 @@
+ARG CACHE_IMAGE=cache
+ARG BASE_IMAGE_FOR_CACHE=base
+
 FROM node:10.15.2 AS base
 
 # dumb-init
@@ -17,13 +20,13 @@ WORKDIR /app
 
 RUN groupadd -r kibana && useradd -r -g kibana kibana && mkdir /home/kibana && chown kibana:kibana /home/kibana
 
-FROM base AS builder
-
 RUN chown kibana /app
 USER kibana
 
 # .gitignored but committed in git
 RUN mkdir /app/data && mkdir /app/plugins
+
+FROM ${BASE_IMAGE_FOR_CACHE} AS cache
 
 COPY --chown=kibana:kibana preinstall_check.js /app/
 COPY --chown=kibana:kibana scripts/kbn.js /app/scripts/kbn.js
@@ -64,12 +67,17 @@ COPY --chown=kibana:kibana test/plugin_functional/plugins/kbn_tp_sample_panel_ac
 COPY --chown=kibana:kibana test/plugin_functional/plugins/kbn_tp_visualize_embedding/package.json /app/test/plugin_functional/plugins/kbn_tp_visualize_embedding/package.json
 COPY --chown=kibana:kibana test/interpreter_functional/plugins/kbn_tp_run_pipeline/package.json /app/test/interpreter_functional/plugins/kbn_tp_run_pipeline/package.json
 
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile --prefer-offline
+RUN rm -rf node_modules/\@elastic/nodegit/.vscode
+
+FROM $CACHE_IMAGE AS builder
+
+USER kibana
 
 COPY --chown=kibana:kibana . /app
 
-RUN yarn kbn bootstrap --frozen-lockfile
-RUN rm -rf node_modules/\@elastic/nodegit/.vscode
+RUN yarn kbn bootstrap --frozen-lockfile --prefer-offline \
+  && rm -rf node_modules/\@elastic/nodegit/.vscode
 
 FROM base AS final
 
@@ -79,4 +87,3 @@ COPY --from=builder /app /app
 
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--", "yarn"]
 CMD ["start"]
-# CMD ["/bin/bash"]
