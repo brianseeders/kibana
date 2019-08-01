@@ -35,8 +35,9 @@ RUN date && [ -f "/home/kibana/node_modules.tar.gz" ] && bsdtar -xzf /home/kiban
   date && [ -f "/home/kibana/yarn.tar.gz" ] && bsdtar -xzf /home/kibana/yarn.tar.gz -C / && rm /home/kibana/yarn.tar.gz; \
   date && yarn kbn bootstrap --frozen-lockfile --prefer-offline && date \
   && rm -rf node_modules/\@elastic/nodegit/.vscode \
-  && bsdtar -zcf node_modules.tar.gz node_modules \
-  && rm -rf node_modules
+  && (find . -type d -name node_modules -prune -print0 | bsdtar -czf node_modules.tar.gz --null -T -) \
+  && (find . -type d -name node_modules -prune | xargs rm -rf) \
+  && date
 
 FROM base AS final
 
