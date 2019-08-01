@@ -38,5 +38,11 @@ RUN date && [ -f "/home/kibana/node_modules.tar.gz" ] && bsdtar -xzf /home/kiban
   && bsdtar -zcf node_modules.tar.gz node_modules \
   && rm -rf node_modules
 
+FROM base AS final
+
+USER kibana
+
+COPY --from=builder --chown=kibana:kibana /app /app
+
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--", "yarn"]
 CMD ["start"]
