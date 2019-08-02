@@ -200,7 +200,7 @@ spec:
   }
 }
 
-def withBase(baseImage, closure) {
+def withBase(tag, closure) {
   withKibanaImage(tag) {
     sh 'cd /app && bsdtar -xzf node_modules.tar.gz'
 
