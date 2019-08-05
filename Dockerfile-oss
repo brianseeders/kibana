@@ -35,10 +35,13 @@ RUN date && [ -f "/home/kibana/node_modules.tar.gz" ] && bsdtar -xzf /home/kiban
   date && [ -f "/home/kibana/yarn.tar.gz" ] && bsdtar -xzf /home/kibana/yarn.tar.gz -C /; \
   date && yarn kbn bootstrap --frozen-lockfile --prefer-offline && date \
   && node scripts/build --debug --oss \
+  && (find . -type d -name node_modules -prune -print0 | bsdtar -czf node_modules.tar.gz --null -T -) \
   && rm -rf build \
   && rm -rf node_modules \
-  && rm -rf /home/kibana/.cache/yarn
+  && rm -rf /home/kibana/.cache/yarn \
+  && rm -f /home/kibana/yarn.tar.gz
 
+# TODO create new /app/node_modules? shouldn't need yarn cache though
 # TODO remove .git? not sure if it's needed
 # TODO cache ES efficiently
 
