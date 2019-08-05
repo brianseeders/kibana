@@ -1,0 +1,54 @@
+master:
+  tag: lts-alpine
+  JCasC:
+    enabled: true
+    configScripts:
+      welcome-message: |
+        jenkins:
+          systemMessage: Welcome to Jenkins
+      jobs: |
+        jobs:
+          - script: >
+              pipelineJob('brianseeders-kibana') {
+                  definition {
+                      cpsScm {
+                        lightweight true
+                          scm {
+                              git {
+                                  remote {
+                                      name('origin')
+                                      refspec('+refs/heads/jenkins-pipeline:refs/remotes/origin/jenkins-pipeline')
+                                      url('https://github.com/brianseeders/kibana.git')
+                                  }
+                                  branch('jenkins-pipeline')
+                                  extensions {
+                                      cloneOptions {
+                                          depth(1)
+                                          shallow(true)
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+  ingress:
+    enabled: true
+  installPlugins:
+    - kubernetes:latest
+    - kubernetes-credentials:latest
+    - workflow-aggregator:latest
+    - workflow-job:latest
+    - credentials-binding:latest
+    - git:latest
+    - job-dsl:latest
+    - github:latest
+    - rebuild:latest
+    - logstash:latest
+    - timestamper:latest
+  javaOpts: >-
+    -Dhudson.slaves.NodeProvisioner.initialDelay=0
+    -Dhudson.slaves.NodeProvisioner.MARGIN=50
+    -Dhudson.slaves.NodeProvisioner.MARGIN0=0.85
+persistence:
+  enabled: true
