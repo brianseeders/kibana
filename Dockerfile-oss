@@ -25,31 +25,20 @@ USER kibana
 # .gitignored but committed in git
 RUN mkdir /app/data && mkdir /app/plugins
 
-FROM $CACHE_IMAGE AS builder
+FROM $CACHE_IMAGE as final
 
 USER kibana
 
 COPY --chown=kibana:kibana . /app
 
-RUN date && [ -f "/home/kibana/node_modules.tar.gz" ] && bsdtar -xzf /home/kibana/node_modules.tar.gz && rm /home/kibana/node_modules.tar.gz; \
-  date && [ -f "/home/kibana/yarn.tar.gz" ] && bsdtar -xzf /home/kibana/yarn.tar.gz -C / && rm /home/kibana/yarn.tar.gz; \
+RUN date && [ -f "/home/kibana/node_modules.tar.gz" ] && bsdtar -xzf /home/kibana/node_modules.tar.gz; \
+  date && [ -f "/home/kibana/yarn.tar.gz" ] && bsdtar -xzf /home/kibana/yarn.tar.gz -C /; \
   date && yarn kbn bootstrap --frozen-lockfile --prefer-offline && date \
-  && rm -rf node_modules/\@elastic/nodegit/.vscode
-
-RUN node scripts/build --debug --oss
-
-RUN rm -rf build \
-   && (find . -type d -name node_modules -prune -print0 | bsdtar -czf node_modules.tar.gz --null -T -) \
-  && (find . -type d -name node_modules -prune | xargs rm -rf)
+  && node scripts/build --debug --oss \
+  && rm -rf build
 
 # TODO remove .git? not sure if it's needed
 # TODO cache ES efficiently
-
-FROM base AS final
-
-USER kibana
-
-COPY --from=builder --chown=kibana:kibana /app /app
 
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--", "yarn"]
 CMD ["start"]
