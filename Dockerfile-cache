@@ -74,3 +74,4 @@ FROM base as final
 
 COPY --from=builder --chown=kibana:kibana /app/node_modules.tar.gz /home/kibana/node_modules.tar.gz
 COPY --from=builder --chown=kibana:kibana /home/kibana/.cache/yarn.tar.gz /home/kibana/yarn.tar.gz
+COPY --chown=kibana:kibana .git /app/.git
