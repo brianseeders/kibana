@@ -1,5 +1,6 @@
 #!/bin/groovy
 node {
+  def REMOTE_TAG_BASE = 'gcr.io/elastic-kibana-184716/brianseeders/kibana'
   def REMOTE_TAG = 'gcr.io/elastic-kibana-184716/brianseeders/kibana-dind:latest'
   def GIT_COMMIT = ''
   def SCM_VARS = ''
@@ -15,70 +16,64 @@ node {
   def CACHE_IMAGE = ''
 
   parallel([
-    withBuild: {
-      stage('Launch k8s docker agent') {
-        withDocker {
-          parallel([
-            image_pull: {
-              stage('Pull cache image') {
-                for(image in CACHE_IMAGES_TO_TRY) {
-                  try {
-                    // TODO add multiple cache image attempts for branch, tag, master
-                    sh "docker pull '${image}'"
-                    // CACHE_IMAGE = image
-                    // BASE_IMAGE_FOR_CACHE = image
-                  } catch(ex) {}
+    builds: {
+      parallel([
+        oss: {
+          stage('builds > oss') {
+            withDocker {
+              def data = pullCacheAndSource(CACHE_IMAGES_TO_TRY)
+              def tag = REMOTE_TAG_BASE+'-oss'
+
+              stage('builds > oss > build') {
+                sh "DOCKER_BUILDKIT=1 docker build -f Dockerfile-oss --cache-from='${CACHE_REMOTE_TAG}' --target final --build-arg 'CACHE_IMAGE=${CACHE_REMOTE_TAG}' -t '${tag}' ."
+              }
+
+              stage('builds > oss > push') {
+                sh "docker push '${tag}'"
+              }
+
+              stage('builds > oss > tests') {
+                withBuild(tag) {
+                  stage('builds > oss > tests > ciGroup3') {
+                    sh 'export CI_GROUP=3; export TEST_BROWSER_HEADLESS=1 && cd /app && yarn run grunt "run:functionalTests_ciGroup3"'
+                  }
                 }
               }
-            },
-            checkout: {
-              SCM_VARS = checkout scm
-              GIT_COMMIT = SCM_VARS.GIT_COMMIT
-              print SCM_VARS
-            }
-          ])
-
-          def baseImage = "kibana-base:${GIT_COMMIT}"
-
-          stage('Build base image') {
-            sh "docker build --cache-from='${CACHE_REMOTE_TAG}' --target final --build-arg 'CACHE_IMAGE=${CACHE_REMOTE_TAG}' -t '${REMOTE_TAG}' ."
-          }
-
-          stage('Push base image') {
-            sh "docker push '${REMOTE_TAG}'"
-          }
-        }
-      }
-      parallel([
-        buildOss: {
-          withBase(REMOTE_TAG) {
-            stage('Build OSS') {
-              sh 'cd /app && node scripts/build --debug --oss'
             }
           }
         },
-        buildDefault: {
-          withBase(REMOTE_TAG) {
-            stage('Build Default') {
-              sh 'cd /app && node scripts/build --debug --no-oss'
+        cache: {
+          stage('builds > cache') {
+            withDocker {
+              stage('builds > cache > scm') {
+                checkout scm
+              }
+
+              stage('builds > cache > build') {
+                sh "docker build -f Dockerfile-cache -t '${CACHE_REMOTE_TAG}' ."
+              }
+
+              stage('builds > cache > push') {
+                sh "docker push '${CACHE_REMOTE_TAG}'"
+              }
             }
           }
-        }
+        },
       ])
     },
     intake: {
-      stage('Launch k8s kibana-cache agent') {
+      stage('intake') {
         withCache(CACHE_REMOTE_TAG) {
-          stage('Intake') {
+          stage('intake > run') {
             sh "./test/scripts/jenkins_unit.sh"
           }
         }
       }
     },
     sasslint: {
-      stage('Launch k8s kibana-cache agent') {
+      stage('sasslint') {
         withCache(CACHE_REMOTE_TAG) {
-          stage('Linting') {
+          stage('sasslint > run') {
             sh "yarn lint:sass"
           }
         }
@@ -146,6 +141,10 @@ spec:
         mountPath: /var/lib/docker
       - name: certs
         mountPath: /certs
+    resources:
+      requests:
+        cpu: 4
+        memory: 8Gi
   volumes:
   - name: docker-storage
     emptyDir: {}
@@ -190,6 +189,10 @@ spec:
     tty: true
     securityContext:
       runAsUser: 999
+    resources:
+      requests:
+        cpu: 1
+        memory: 4Gi
 """
   ) {
     node(POD_LABEL) {
@@ -198,6 +201,16 @@ spec:
       }
     }
   }
+}
+
+def withBuild(tag, closure) {
+  withKibanaImage(tag) {
+    sh 'cd /app && bsdtar -xzf /home/kibana/node_modules.tar.gz'
+    sh 'cd /app && mkdir -p build/oss && bsdtar -xzf target/*oss*.tar.gz -C build/oss'
+    sh 'cd /app && bash src/dev/ci_setup/setup_docker.sh'
+
+    closure()
+  }  
 }
 
 def withBase(tag, closure) {
@@ -216,6 +229,11 @@ def withCache(tag, closure) {
         sh 'bsdtar -xzf /home/kibana/node_modules.tar.gz'
       },
       git: {
+        try {
+          sh '[ -d "/app/.git" ] && cp -R /app/.git .'
+        } catch (ex) {
+          print "No git cache present in image..."
+        }
         checkout scm
       }
     ])
@@ -224,4 +242,34 @@ def withCache(tag, closure) {
 
     closure()
   }
+}
+
+def pullCacheAndSource(cacheImagesToTry) {
+  def SCM_VARS
+  def GIT_COMMIT
+
+  parallel([
+    image_pull: {
+      stage('Pull cache image') {
+        for(image in cacheImagesToTry) {
+          try {
+            // TODO add multiple cache image attempts for branch, tag, master
+            sh "docker pull '${image}'"
+            // CACHE_IMAGE = image
+            // BASE_IMAGE_FOR_CACHE = image
+          } catch(ex) {}
+        }
+      }
+    },
+    checkout: {
+      SCM_VARS = checkout scm
+      GIT_COMMIT = SCM_VARS.GIT_COMMIT
+      print SCM_VARS
+    }
+  ])
+
+  return [
+    SCM_VARS: SCM_VARS,
+    GIT_COMMIT: GIT_COMMIT,
+  ]
 }
