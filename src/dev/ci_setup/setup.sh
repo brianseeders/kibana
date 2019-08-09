@@ -95,7 +95,7 @@ export PATH="$nodeBin:$PATH"
 ### downloading yarn
 ###
 yarnVersion="$(node -e "console.log(String(require('./package.json').engines.yarn || '').replace(/^[^\d]+/,''))")"
-npm install -g "yarn@^${yarnVersion}"
+npm install -g "yarn@^${yarnVersion}" --verbose
 
 ###
 ### setup yarn offline cache
