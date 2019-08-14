@@ -1,3 +1,4 @@
+#!/bin/groovy
 // TODO is there a way to make this actually work with the Jenkins sandbox?
 @NonCPS
 def getJobs() {
@@ -19,130 +20,193 @@ def cStage(name, closure) {
 
 timestamps {
   ansiColor('xterm') {
-    // parallel([
-    //   'oss-ciGroup1': ossCiGroupRunner(1),
-    //   // 'oss-ciGroup2': ossCiGroupRunner(2),
-    //   // 'oss-ciGroup3': ossCiGroupRunner(3),
-    //   // 'oss-ciGroup4': ossCiGroupRunner(4),
-    //   // 'oss-ciGroup5': ossCiGroupRunner(5),
-    //   // 'oss-ciGroup6': ossCiGroupRunner(6),
-    //   // 'oss-ciGroup7': ossCiGroupRunner(7),
-    //   // 'oss-ciGroup8': ossCiGroupRunner(8),
-    //   // 'oss-ciGroup9': ossCiGroupRunner(9),
-    //   // 'oss-ciGroup10': ossCiGroupRunner(10),
-    //   // 'oss-ciGroup11': ossCiGroupRunner(11),
-    //   // 'oss-ciGroup12': ossCiGroupRunner(12),
-    //   // 'xpack-ciGroup1': xpackCiGroupRunner(1),
-    //   'xpack-ciGroup2': xpackCiGroupRunner(2),
-    //   // 'xpack-ciGroup3': xpackCiGroupRunner(3),
-    //   // 'xpack-ciGroup4': xpackCiGroupRunner(4),
-    //   // 'xpack-ciGroup5': xpackCiGroupRunner(5),
-    //   // 'xpack-ciGroup6': xpackCiGroupRunner(6),
-    //   // 'xpack-ciGroup7': xpackCiGroupRunner(7),
-    //   // 'xpack-ciGroup8': xpackCiGroupRunner(8),
-    //   // 'xpack-ciGroup9': xpackCiGroupRunner(9),
-    //   // 'xpack-ciGroup10': xpackCiGroupRunner(10),
-    // ])
-    withOssWorker {
-      run = {
-        cStage('Archive workspace') {
-          bash "touch ${workspaceArchiveFilename} && tar -czf ${workspaceArchiveFilename} --exclude=${workspaceArchiveFilename} . /var/lib/jenkins/.kibana/node"
+    parallel([
+      'oss-kibana': {
+        buildOssKibana()
+
+        parallel([
+          'oss-ciGroup1': ossCiGroupRunner(1),
+          'oss-ciGroup2': ossCiGroupRunner(2),
+          'oss-ciGroup3': ossCiGroupRunner(3),
+          'oss-ciGroup4': ossCiGroupRunner(4),
+          'oss-ciGroup5': ossCiGroupRunner(5),
+          'oss-ciGroup6': ossCiGroupRunner(6),
+          'oss-ciGroup7': ossCiGroupRunner(7),
+          'oss-ciGroup8': ossCiGroupRunner(8),
+          'oss-ciGroup9': ossCiGroupRunner(9),
+          'oss-ciGroup10': ossCiGroupRunner(10),
+          'oss-ciGroup11': ossCiGroupRunner(11),
+          'oss-ciGroup12': ossCiGroupRunner(12),
+        ])
+      },
+      'default-kibana': {
+        buildDefaultKibana()
+
+        parallel([
+          'xpack-ciGroup1': xpackCiGroupRunner(1),
+          'xpack-ciGroup2': xpackCiGroupRunner(2),
+          'xpack-ciGroup3': xpackCiGroupRunner(3),
+          'xpack-ciGroup4': xpackCiGroupRunner(4),
+          'xpack-ciGroup5': xpackCiGroupRunner(5),
+          'xpack-ciGroup6': xpackCiGroupRunner(6),
+          'xpack-ciGroup7': xpackCiGroupRunner(7),
+          'xpack-ciGroup8': xpackCiGroupRunner(8),
+          'xpack-ciGroup9': xpackCiGroupRunner(9),
+          'xpack-ciGroup10': xpackCiGroupRunner(10),
+        ])
+      },
+      'oss-intake': {
+        withBootstrappedWorker {
+          stage('OSS Intake') {
+            withTestReporter {
+              withEnv 'export TEST_BROWSER_HEADLESS=1; "$(FORCE_COLOR=0 yarn bin)/grunt" jenkins:unit --dev'
+            }
+          }
         }
-        cStage('Store workspace') {
-          step([
-            $class: 'ClassicUploadStep',
-            credentialsId: 'kibana-ci-gcs-plugin',
-            bucket: "gs://kibana-pipeline-testing/workspaces/latest",
-            pattern: workspaceArchiveFilename,
-          ])
+      },
+      'default-intake': {
+        withBootstrappedWorker {
+          cStage('Default Intake') {
+            withTestReporter {
+              withEnv '''
+                export TEST_BROWSER_HEADLESS=1
+
+                echo " -> Running mocha tests"
+                cd "$XPACK_DIR"
+                checks-reporter-with-killswitch "X-Pack Mocha" yarn test
+                echo ""
+                echo ""
+
+                echo " -> Running jest tests"
+                cd "$XPACK_DIR"
+                checks-reporter-with-killswitch "X-Pack Jest" node scripts/jest --ci --verbose
+                echo ""
+                echo ""
+
+                echo " -> Running SIEM cyclic dependency test"
+                cd "$XPACK_DIR"
+                checks-reporter-with-killswitch "X-Pack SIEM cyclic dependency test" node legacy/plugins/siem/scripts/check_circular_deps
+                echo ""
+                echo ""
+
+                echo " -> Running jest contracts tests"
+                cd "$XPACK_DIR"
+                SLAPSHOT_ONLINE=true CONTRACT_ONLINE=true node scripts/jest_contract.js --ci --verbose
+                echo ""
+                echo ""
+              '''
+            }
+          }
         }
-      }
-    }
-
-    cStage('Worker node') {
-      node('linux && immutable') {
-        skipDefaultCheckout()
-
-        env.HOME = env.JENKINS_HOME 
-
-        withEnv 
-      }
-    }
+      },
+    ])
   }
 }
 
-def withOssWorker(body) {
-  def config = [:]
-  body.resolveStrategy = Closure.DELEGATE_FIRST
-  body.delegate = config
-  body()
-
+def buildOssKibana() {
   withBootstrappedWorker {
-    if (body.beforeBuild) {
-      body.beforeBuild()
-    }
-
-    cStage('Build OSS Kibana') {
+    stage('Build OSS Kibana') {
       withEnv 'node scripts/build --debug --oss'
     }
 
-    body.run()
+    def workspaceArchiveFilename = 'workspace-oss.archive.tar.gz'
+
+    stage('Archive workspace') {
+      bash "touch ${workspaceArchiveFilename} && tar -czf ${workspaceArchiveFilename} --exclude=${workspaceArchiveFilename} . /var/lib/jenkins/.kibana/node"
+    }
+
+    stage('Upload workspace') {
+      step([
+        $class: 'ClassicUploadStep',
+        credentialsId: 'kibana-ci-gcs-plugin',
+        bucket: "gs://kibana-pipeline-testing/workspaces/latest",
+        pattern: workspaceArchiveFilename,
+      ])
+    }
   }
 }
 
-def withXpackWorker(closure) {
+def buildDefaultKibana() {
   withBootstrappedWorker {
     cStage('Build Default Kibana') {
       withEnv 'node scripts/build --debug --no-oss'
     }
 
-    closure()
+    def workspaceArchiveFilename = 'workspace-default.archive.tar.gz'
+
+    stage('Archive workspace') {
+      bash "touch ${workspaceArchiveFilename} && tar -czf ${workspaceArchiveFilename} --exclude=${workspaceArchiveFilename} . /var/lib/jenkins/.kibana/node"
+    }
+
+    stage('Upload workspace') {
+      step([
+        $class: 'ClassicUploadStep',
+        credentialsId: 'kibana-ci-gcs-plugin',
+        bucket: "gs://kibana-pipeline-testing/workspaces/latest",
+        pattern: workspaceArchiveFilename,
+      ])
+    }
   }
 }
 
 def withBootstrappedWorker(closure) {
   node('linux && immutable') {
+    def workspaceArchiveFilename = 'workspace.archive.tar.gz'
+
     skipDefaultCheckout()
 
     env.HOME = env.JENKINS_HOME
 
-    cStage('Checkout') {
-      def scmVars = checkout scm
-      env.GIT_BRANCH = scmVars.GIT_BRANCH
-    }
+    parallel([
+      checkout: {
+        cStage('Checkout') {
+          def scmVars = checkout scm
+          env.GIT_BRANCH = scmVars.GIT_BRANCH
+        }
+      },
+      cache: {
+        cStage('Bootstrap cache') {
+          bash '''
+            targetBranch="master"
+            bootstrapCache="$HOME/.kibana/bootstrap_cache/$targetBranch.tar"
+
+            ###
+            ### Extract the bootstrap cache that we create in the packer_cache.sh script
+            ###
+            if [ -f "$bootstrapCache" ]; then
+              mkdir -p ./bootstrap-cache
+              echo "extracting bootstrap_cache from $bootstrapCache";
+              tar -xf "$bootstrapCache" -C ./bootstrap-cache;
+            fi
+          '''
+        }
+        // cStage('Download archive') {
+        //   step([
+        //     $class: 'DownloadStep',
+        //     credentialsId: 'kibana-ci-gcs-plugin',
+        //     bucketUri: "gs://kibana-pipeline-testing/workspaces/latest/${workspaceArchiveFilename}",
+        //     localDirectory: env.WORKSPACE
+        //   ])
+        // }
+      }
+    ])
 
     dir('./kibana') {
-      cStage('Extract bootstrap cache') {
-        bash 'env | sort'
+      // cStage('Extract archive') {
+      //   bash "tar -xzf ../workspaces/latest/${workspaceArchiveFilename}"
+      //   bash 'rm -rf /var/lib/jenkins/.kibana/node && mv var/lib/jenkins/.kibana/node /var/lib/jenkins/.kibana/'
+      //   bash 'git reset --hard'
+      // }
 
-        bash '''#!/usr/bin/env bash
-  # targetBranch="${PR_TARGET_BRANCH:-${GIT_BRANCH#*/}}"
-  targetBranch="master"
-  bootstrapCache="$HOME/.kibana/bootstrap_cache/$targetBranch.tar"
-
-  ###
-  ### Extract the bootstrap cache that we create in the packer_cache.sh script
-  ###
-  if [ -f "$bootstrapCache" ]; then
-  echo "extracting bootstrap_cache from $bootstrapCache";
-  tar -xf "$bootstrapCache";
-  else
-  echo ""
-  echo ""
-  echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
-  echo "            bootstrap_cache missing";
-  echo "            looked for '$bootstrapCache'";
-  echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
-  echo ""
-  echo ""
-  fi'''
+      cStage('Move bootstrap-cache') {
+        bash 'cp -aTl ../bootstrap-cache/ ./'
       }
       
-      cStage('setup.sh') {
+      stage('setup.sh') {
         bash 'source src/dev/ci_setup/setup.sh'
       }
 
-      cStage('Sibling ES') {
+      stage('Sibling ES') {
         bash 'rm -rf ../elasticsearch'
         bash 'source src/dev/ci_setup/setup_docker.sh; source src/dev/ci_setup/checkout_sibling_es.sh'
       }
@@ -172,6 +236,9 @@ C_RESET='\033[0m' # Reset color
 ### to enable color support in Chalk and other related modules.
 ###
 export FORCE_COLOR=1
+
+# TODO
+export NODE_OPTIONS="--max_old_space_size=2048"
 
 ###
 ### check that we seem to be in a kibana project
@@ -231,6 +298,15 @@ function checks-reporter-with-killswitch() {
 ''' + script
 }
 
+def withTestReporter(closure) {
+  try {
+    closure()
+  } catch(ex) {
+    reportFailedTests()
+    throw ex
+  }
+}
+
 def reportFailedTests() {
   withEnv 'node "$KIBANA_DIR/src/dev/failed_tests/cli"'
 }
@@ -239,30 +315,37 @@ def ossCiGroupRunner(ciGroupNumber, additionalScript='') {
   return {
     stage("oss-ciGroup${ciGroupNumber}") {
       // TODO need to move functionalTests:ensureAllTestsInCiGroup to before the build
+      node('linux && immutable') {
+        skipDefaultCheckout()
 
-      withOssWorker {
-        beforeBuild = {
-          withEnv "yarn run grunt functionalTests:ensureAllTestsInCiGroup"
+        env.HOME = env.JENKINS_HOME 
+
+        def workspaceArchiveFilename = 'workspace-oss.archive.tar.gz'
+
+        cStage('Download archive') {
+          step([
+            $class: 'DownloadStep',
+            credentialsId: 'kibana-ci-gcs-plugin',
+            bucketUri: "gs://kibana-pipeline-testing/workspaces/latest/${workspaceArchiveFilename}",
+            localDirectory: env.WORKSPACE
+          ])
         }
 
-        run = {
-          try {
-            withEnv """
-              set -e
-              export CI_GROUP=${ciGroupNumber}
-              export TEST_BROWSER_HEADLESS=1
+        cStage('Extract archive') {
+          bash "tar -xzf workspaces/latest/${workspaceArchiveFilename}"
+          bash 'rm -rf /var/lib/jenkins/.kibana/node && mv var/lib/jenkins/.kibana/node /var/lib/jenkins/.kibana/'
+        }
 
-              
+        withTestReporter {
+          withEnv """
+            set -e
+            export CI_GROUP=${ciGroupNumber}
+            export TEST_BROWSER_HEADLESS=1
 
-              checks-reporter-with-killswitch "Functional tests / Group ${ciGroupNumber}" yarn run grunt "run:functionalTests_ciGroup${ciGroupNumber}"
+            checks-reporter-with-killswitch "Functional tests / Group ${ciGroupNumber}" yarn run grunt "run:functionalTests_ciGroup${ciGroupNumber}"
 
-              ${additionalScript}
-            """
-          }
-          catch(exception) {
-            reportFailedTests()
-            throw exception
-          }
+            ${additionalScript}
+          """
         }
       }
     }
@@ -274,8 +357,28 @@ def xpackCiGroupRunner(ciGroupNumber, additionalScript='') {
     stage("xpack-ciGroup${ciGroupNumber}") {
       // TODO need to move 'Ensuring all functional tests are in a ciGroup' to before the build
 
-      withXpackWorker {
-        try {
+      node('linux && immutable') {
+        skipDefaultCheckout()
+
+        env.HOME = env.JENKINS_HOME 
+
+        def workspaceArchiveFilename = 'workspace-default.archive.tar.gz'
+
+        cStage('Download archive') {
+          step([
+            $class: 'DownloadStep',
+            credentialsId: 'kibana-ci-gcs-plugin',
+            bucketUri: "gs://kibana-pipeline-testing/workspaces/latest/${workspaceArchiveFilename}",
+            localDirectory: env.WORKSPACE
+          ])
+        }
+
+        cStage('Extract archive') {
+          bash "tar -xzf workspaces/latest/${workspaceArchiveFilename}"
+          bash 'rm -rf /var/lib/jenkins/.kibana/node && mv var/lib/jenkins/.kibana/node /var/lib/jenkins/.kibana/'
+        }
+
+        withTestReporter {
           withEnv """
             set -e
             export CI_GROUP=${ciGroupNumber}
@@ -297,9 +400,8 @@ def xpackCiGroupRunner(ciGroupNumber, additionalScript='') {
               --include-tag ciGroup9 \
               --include-tag ciGroup10
 
-            echo " -> building and extracting default Kibana distributable for use in functional tests"
+            echo " -> extracting default Kibana distributable for use in functional tests"
             cd "\$KIBANA_DIR"
-            node scripts/build --debug --no-oss
             linuxBuild="\$(find "\$KIBANA_DIR/target" -name 'kibana-*-linux-x86_64.tar.gz')"
             installDir="\$PARENT_DIR/install/kibana"
             mkdir -p "\$installDir"
@@ -319,10 +421,6 @@ def xpackCiGroupRunner(ciGroupNumber, additionalScript='') {
 
             ${additionalScript}
           """
-        }
-        catch(exception) {
-          reportFailedTests()
-          throw exception
         }
       }
     }
