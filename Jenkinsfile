@@ -8,54 +8,91 @@ def getJobs() {
   return jobs
 }
 
-// TODO - temporary custom stage wrapper
-def wrapStage(name, closure) {
+def workspaceArchiveFilename = 'workspace.archive.tar.gz'
+def homeArchiveFilename = 'home.archive.tar.gz'
+
+// TODO - temporary stage wrapper
+def cStage(name, closure) {
   print "Stage: ${name}"
   closure()
 }
 
 timestamps {
   ansiColor('xterm') {
-    parallel([
-      'oss-ciGroup1': ossCiGroupRunner(1),
-      'oss-ciGroup2': ossCiGroupRunner(2),
-      'oss-ciGroup3': ossCiGroupRunner(3),
-      'oss-ciGroup4': ossCiGroupRunner(4),
-      'oss-ciGroup5': ossCiGroupRunner(5),
-      'oss-ciGroup6': ossCiGroupRunner(6),
-      'oss-ciGroup7': ossCiGroupRunner(7),
-      'oss-ciGroup8': ossCiGroupRunner(8),
-      'oss-ciGroup9': ossCiGroupRunner(9),
-      'oss-ciGroup10': ossCiGroupRunner(10),
-      'oss-ciGroup11': ossCiGroupRunner(11),
-      'oss-ciGroup12': ossCiGroupRunner(12),
-      'xpack-ciGroup1': xpackCiGroupRunner(1),
-      'xpack-ciGroup2': xpackCiGroupRunner(2),
-      'xpack-ciGroup3': xpackCiGroupRunner(3),
-      'xpack-ciGroup4': xpackCiGroupRunner(4),
-      'xpack-ciGroup5': xpackCiGroupRunner(5),
-      'xpack-ciGroup6': xpackCiGroupRunner(6),
-      'xpack-ciGroup7': xpackCiGroupRunner(7),
-      'xpack-ciGroup8': xpackCiGroupRunner(8),
-      'xpack-ciGroup9': xpackCiGroupRunner(9),
-      'xpack-ciGroup10': xpackCiGroupRunner(10),
-    ])
+    // parallel([
+    //   'oss-ciGroup1': ossCiGroupRunner(1),
+    //   // 'oss-ciGroup2': ossCiGroupRunner(2),
+    //   // 'oss-ciGroup3': ossCiGroupRunner(3),
+    //   // 'oss-ciGroup4': ossCiGroupRunner(4),
+    //   // 'oss-ciGroup5': ossCiGroupRunner(5),
+    //   // 'oss-ciGroup6': ossCiGroupRunner(6),
+    //   // 'oss-ciGroup7': ossCiGroupRunner(7),
+    //   // 'oss-ciGroup8': ossCiGroupRunner(8),
+    //   // 'oss-ciGroup9': ossCiGroupRunner(9),
+    //   // 'oss-ciGroup10': ossCiGroupRunner(10),
+    //   // 'oss-ciGroup11': ossCiGroupRunner(11),
+    //   // 'oss-ciGroup12': ossCiGroupRunner(12),
+    //   // 'xpack-ciGroup1': xpackCiGroupRunner(1),
+    //   'xpack-ciGroup2': xpackCiGroupRunner(2),
+    //   // 'xpack-ciGroup3': xpackCiGroupRunner(3),
+    //   // 'xpack-ciGroup4': xpackCiGroupRunner(4),
+    //   // 'xpack-ciGroup5': xpackCiGroupRunner(5),
+    //   // 'xpack-ciGroup6': xpackCiGroupRunner(6),
+    //   // 'xpack-ciGroup7': xpackCiGroupRunner(7),
+    //   // 'xpack-ciGroup8': xpackCiGroupRunner(8),
+    //   // 'xpack-ciGroup9': xpackCiGroupRunner(9),
+    //   // 'xpack-ciGroup10': xpackCiGroupRunner(10),
+    // ])
+    withOssWorker {
+      run = {
+        cStage('Archive workspace') {
+          bash "touch ${workspaceArchiveFilename} && tar -czf ${workspaceArchiveFilename} --exclude=${workspaceArchiveFilename} . /var/lib/jenkins/.kibana/node"
+        }
+        cStage('Store workspace') {
+          step([
+            $class: 'ClassicUploadStep',
+            credentialsId: 'kibana-ci-gcs-plugin',
+            bucket: "gs://kibana-pipeline-testing/workspaces/latest",
+            pattern: workspaceArchiveFilename,
+          ])
+        }
+      }
+    }
+
+    cStage('Worker node') {
+      node('linux && immutable') {
+        skipDefaultCheckout()
+
+        env.HOME = env.JENKINS_HOME 
+
+        withEnv 
+      }
+    }
   }
 }
 
-def withOssWorker(closure) {
+def withOssWorker(body) {
+  def config = [:]
+  body.resolveStrategy = Closure.DELEGATE_FIRST
+  body.delegate = config
+  body()
+
   withBootstrappedWorker {
-    wrapStage('Build OSS Kibana') {
+    if (body.beforeBuild) {
+      body.beforeBuild()
+    }
+
+    cStage('Build OSS Kibana') {
       withEnv 'node scripts/build --debug --oss'
     }
 
-    closure()
+    body.run()
   }
 }
 
 def withXpackWorker(closure) {
   withBootstrappedWorker {
-    wrapStage('Build Default Kibana') {
+    cStage('Build Default Kibana') {
       withEnv 'node scripts/build --debug --no-oss'
     }
 
@@ -69,13 +106,13 @@ def withBootstrappedWorker(closure) {
 
     env.HOME = env.JENKINS_HOME
 
-    wrapStage('Checkout') {
+    cStage('Checkout') {
       def scmVars = checkout scm
       env.GIT_BRANCH = scmVars.GIT_BRANCH
     }
 
     dir('./kibana') {
-      wrapStage('Extract bootstrap cache') {
+      cStage('Extract bootstrap cache') {
         bash 'env | sort'
 
         bash '''#!/usr/bin/env bash
@@ -101,11 +138,11 @@ def withBootstrappedWorker(closure) {
   fi'''
       }
       
-      wrapStage('setup.sh') {
+      cStage('setup.sh') {
         bash 'source src/dev/ci_setup/setup.sh'
       }
 
-      wrapStage('Sibling ES') {
+      cStage('Sibling ES') {
         bash 'rm -rf ../elasticsearch'
         bash 'source src/dev/ci_setup/setup_docker.sh; source src/dev/ci_setup/checkout_sibling_es.sh'
       }
@@ -204,22 +241,28 @@ def ossCiGroupRunner(ciGroupNumber, additionalScript='') {
       // TODO need to move functionalTests:ensureAllTestsInCiGroup to before the build
 
       withOssWorker {
-        try {
-          withEnv """
-            set -e
-            export CI_GROUP=${ciGroupNumber}
-            export TEST_BROWSER_HEADLESS=1
-
-            yarn run grunt functionalTests:ensureAllTestsInCiGroup
-
-            checks-reporter-with-killswitch "Functional tests / Group ${ciGroupNumber}" yarn run grunt "run:functionalTests_ciGroup${ciGroupNumber}"
-
-            ${additionalScript}
-          """
+        beforeBuild = {
+          withEnv "yarn run grunt functionalTests:ensureAllTestsInCiGroup"
         }
-        catch(exception) {
-          reportFailedTests()
-          throw exception
+
+        run = {
+          try {
+            withEnv """
+              set -e
+              export CI_GROUP=${ciGroupNumber}
+              export TEST_BROWSER_HEADLESS=1
+
+              
+
+              checks-reporter-with-killswitch "Functional tests / Group ${ciGroupNumber}" yarn run grunt "run:functionalTests_ciGroup${ciGroupNumber}"
+
+              ${additionalScript}
+            """
+          }
+          catch(exception) {
+            reportFailedTests()
+            throw exception
+          }
         }
       }
     }
