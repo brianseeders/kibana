@@ -16,7 +16,7 @@ def ossWorkspaceArchiveFilename = 'workspace-oss.archive.tar.gz'
 def defaultWorkspaceArchiveFilename = 'workspace-default.archive.tar.gz'
 
 def ossTestSuites = [
-    "api_integration.apis.elasticsearch",
+  "api_integration.apis.elasticsearch",
   "api_integration.apis.general.cookies",
   "api_integration.apis.general.csp",
   "api_integration.apis.home.sample_data",
@@ -131,7 +131,6 @@ def ossTestSuites = [
   "functional.apps.visualize._vega_chart",
   "functional.apps.visualize._vertical_bar_chart_nontimeindex",
   "functional.apps.visualize._visualize_listing",
-  // "functional.apps.visualize.index",
   "functional.apps.visualize.input_control_vis.chained_controls",
   "functional.apps.visualize.input_control_vis.dynamic_options",
   "functional.apps.visualize.input_control_vis.input_control_options",
@@ -147,10 +146,10 @@ def ossTestSuites = [
 
 def xpackSuites = [
   "test/reporting/configs/chromium_api.js": [
-    "reporting.api.bwc_existing_indexes",
+    ["reporting.api.bwc_existing_indexes",
     "reporting.api.bwc_generation_urls",
     "reporting.api.chromium_tests",
-    "reporting.api.usage"
+    "reporting.api.usage"]
   ],
   "test/reporting/configs/chromium_functional.js": [
     "reporting.functional.reporting"
@@ -159,94 +158,94 @@ def xpackSuites = [
     "reporting.api.generate.csv_saved_search"
   ],
   "test/functional/config.js": [
-    "functional.apps.advanced_settings.feature_controls.advanced_settings_security",
+    ["functional.apps.advanced_settings.feature_controls.advanced_settings_security",
     "functional.apps.advanced_settings.feature_controls.advanced_settings_spaces",
     "functional.apps.apm.feature_controls.apm_security",
-    "functional.apps.apm.feature_controls.apm_spaces",
-    "functional.apps.canvas.feature_controls.canvas_security",
+    "functional.apps.apm.feature_controls.apm_spaces"],
+    ["functional.apps.canvas.feature_controls.canvas_security",
     "functional.apps.canvas.feature_controls.canvas_spaces",
-    "functional.apps.canvas.smoke_test",
-    "functional.apps.code.code_intelligence",
+    "functional.apps.canvas.smoke_test"],
+    ["functional.apps.code.code_intelligence",
     "functional.apps.code.explore_repository",
     "functional.apps.code.file_tree",
-    "functional.apps.code.history",
-    "functional.apps.code.manage_repositories",
+    "functional.apps.code.history"],
+    ["functional.apps.code.manage_repositories",
     "functional.apps.code.search",
-    "functional.apps.code.with_security",
+    "functional.apps.code.with_security"],
     "functional.apps.cross_cluster_replication.home_page",
-    "functional.apps.dashboard.feature_controls.dashboard_security",
-    "functional.apps.dashboard.feature_controls.dashboard_spaces",
+    ["functional.apps.dashboard.feature_controls.dashboard_security",
+    "functional.apps.dashboard.feature_controls.dashboard_spaces"],
     "functional.apps.dashboard_mode.dashboard_view_mode",
-    "functional.apps.dev_tools.feature_controls.dev_tools_security",
+    ["functional.apps.dev_tools.feature_controls.dev_tools_security",
     "functional.apps.dev_tools.feature_controls.dev_tools_spaces",
-    "functional.apps.dev_tools.searchprofiler_editor",
-    "functional.apps.discover.feature_controls.discover_security",
-    "functional.apps.discover.feature_controls.discover_spaces",
-    "functional.apps.graph.feature_controls.graph_security",
+    "functional.apps.dev_tools.searchprofiler_editor"],
+    ["functional.apps.discover.feature_controls.discover_security",
+    "functional.apps.discover.feature_controls.discover_spaces"],
+    ["functional.apps.graph.feature_controls.graph_security",
     "functional.apps.graph.feature_controls.graph_spaces",
-    "functional.apps.graph.graph",
+    "functional.apps.graph.graph"],
     "functional.apps.grok_debugger.grok_debugger",
     "functional.apps.index_lifecycle_management.home_page",
     "functional.apps.index_management.home_page",
-    "functional.apps.index_patterns.feature_controls.index_patterns_security",
-    "functional.apps.index_patterns.feature_controls.index_patterns_spaces",
-    "functional.apps.infra.feature_controls.infrastructure_security",
+    ["functional.apps.index_patterns.feature_controls.index_patterns_security",
+    "functional.apps.index_patterns.feature_controls.index_patterns_spaces"],
+    ["functional.apps.infra.feature_controls.infrastructure_security",
     "functional.apps.infra.feature_controls.infrastructure_spaces",
     "functional.apps.infra.feature_controls.logs_security",
     "functional.apps.infra.feature_controls.logs_spaces",
     "functional.apps.infra.home_page",
     "functional.apps.infra.logs_source_configuration",
-    "functional.apps.infra.metrics_source_configuration",
-    "functional.apps.license_management.home_page",
+    "functional.apps.infra.metrics_source_configuration"],
+    ["functional.apps.license_management.home_page",
     "functional.apps.logstash.pipeline_create",
     "functional.apps.logstash.pipeline_list",
     "functional.apps.machine_learning.feature_controls.ml_security",
-    "functional.apps.machine_learning.feature_controls.ml_spaces",
-    "functional.apps.maps.add_layer_panel",
+    "functional.apps.machine_learning.feature_controls.ml_spaces"],
+    ["functional.apps.maps.add_layer_panel",
     "functional.apps.maps.documents_source.search_hits",
     "functional.apps.maps.documents_source.top_hits",
     "functional.apps.maps.embeddable.dashboard",
     "functional.apps.maps.embeddable.embeddable_state",
-    "functional.apps.maps.embeddable.tooltip_filter_actions",
-    "functional.apps.maps.feature_controls.maps_security",
+    "functional.apps.maps.embeddable.tooltip_filter_actions"],
+    ["functional.apps.maps.feature_controls.maps_security",
     "functional.apps.maps.feature_controls.maps_spaces",
     "functional.apps.maps.full_screen_mode",
     "functional.apps.maps.import_geojson.add_layer_import_panel",
-    "functional.apps.maps.import_geojson.file_indexing_panel",
+    "functional.apps.maps.import_geojson.file_indexing_panel"],
     "functional.apps.maps.joins",
     "functional.apps.maps.layer_errors",
     "functional.apps.maps.sample_data",
     "functional.apps.maps.saved_object_management",
-    "functional.apps.monitoring.beats.beat_detail",
+    ["functional.apps.monitoring.beats.beat_detail",
     "functional.apps.monitoring.beats.cluster",
     "functional.apps.monitoring.beats.listing",
-    "functional.apps.monitoring.beats.overview",
-    "functional.apps.monitoring.cluster.alerts",
+    "functional.apps.monitoring.beats.overview"],
+    ["functional.apps.monitoring.cluster.alerts",
     "functional.apps.monitoring.cluster.list",
-    "functional.apps.monitoring.cluster.overview",
-    "functional.apps.monitoring.elasticsearch.index_detail",
+    "functional.apps.monitoring.cluster.overview"],
+    ["functional.apps.monitoring.elasticsearch.index_detail",
     "functional.apps.monitoring.elasticsearch.indices",
     "functional.apps.monitoring.elasticsearch.node_detail",
     "functional.apps.monitoring.elasticsearch.nodes",
     "functional.apps.monitoring.elasticsearch.overview",
-    "functional.apps.monitoring.elasticsearch.shards",
-    "functional.apps.monitoring.enable_monitoring",
+    "functional.apps.monitoring.elasticsearch.shards"],
+    ["functional.apps.monitoring.enable_monitoring",
     "functional.apps.monitoring.feature_controls.monitoring_security",
     "functional.apps.monitoring.feature_controls.monitoring_spaces",
     "functional.apps.monitoring.kibana.instances",
     "functional.apps.monitoring.kibana.overview",
-    "functional.apps.monitoring.logstash.pipelines",
+    "functional.apps.monitoring.logstash.pipelines"],
     "functional.apps.remote_clusters.home_page",
     "functional.apps.rollup_job.rollup_jobs",
     "functional.apps.saved_objects_management.feature_controls.saved_objects_management_security",
-    "functional.apps.security.doc_level_security_roles",
-    "functional.apps.security.field_level_security",
-    "functional.apps.security.management",
+    ["functional.apps.security.doc_level_security_roles",
+    "functional.apps.security.field_level_security"],
+    ["functional.apps.security.management",
     "functional.apps.security.rbac_phase1",
-    "functional.apps.security.secure_roles_perm",
-    "functional.apps.security.security",
+    "functional.apps.security.secure_roles_perm"],
+    ["functional.apps.security.security",
     "functional.apps.security.user_email",
-    "functional.apps.security.users",
+    "functional.apps.security.users"],
     "functional.apps.snapshot_restore.home_page",
     "functional.apps.spaces.feature_controls.spaces_security",
     "functional.apps.spaces.spaces_selection",
@@ -254,172 +253,45 @@ def xpackSuites = [
     "functional.apps.timelion.feature_controls.timelion_security",
     "functional.apps.timelion.feature_controls.timelion_spaces",
     "functional.apps.upgrade_assistant.upgrade_assistant",
-    "functional.apps.uptime.feature_controls.uptime_security",
+    ["functional.apps.uptime.feature_controls.uptime_security",
     "functional.apps.uptime.feature_controls.uptime_spaces",
     "functional.apps.uptime.monitor",
-    "functional.apps.uptime.overview",
-    "functional.apps.visualize.feature_controls.visualize_security",
+    "functional.apps.uptime.overview"],
+    ["functional.apps.visualize.feature_controls.visualize_security",
     "functional.apps.visualize.feature_controls.visualize_spaces",
-    "functional.apps.watcher.watcher_test",
+    "functional.apps.watcher.watcher_test"],
     "functional.apps.maps.es_geo_grid_source", // slow
   ],
   "test/api_integration/config_security_basic.js": [
-    "api_integration.apis.security.basic_login",
+    ["api_integration.apis.security.basic_login",
     "api_integration.apis.security.builtin_es_privileges",
     "api_integration.apis.security.index_fields",
     "api_integration.apis.security.privileges",
-    "api_integration.apis.security.roles"
+    "api_integration.apis.security.roles"]
   ],
   "test/api_integration/config.js": [
-    // "api_integration.apis.apm.feature_controls",
-    // "api_integration.apis.beats.assign_tags_to_beats",
-    // "api_integration.apis.beats.create_enrollment_tokens",
-    // "api_integration.apis.beats.enroll_beat",
-    // "api_integration.apis.beats.get_beat",
-    // "api_integration.apis.beats.list_beats",
-    // "api_integration.apis.beats.remove_tags_from_beats",
-    // "api_integration.apis.beats.set_tag",
-    // "api_integration.apis.beats.update_beat",
-    // "api_integration.apis.code.feature_controls",
-    // "api_integration.apis.code.repo_status",
-    // "api_integration.apis.console.feature_controls",
-    // "api_integration.apis.es.has_privileges",
-    // "api_integration.apis.es.post_privileges",
-    // "api_integration.apis.infra.feature_controls",
-    // "api_integration.apis.infra.ip_to_hostname",
-    // "api_integration.apis.infra.log_analysis",
-    // "api_integration.apis.infra.log_entries",
-    // "api_integration.apis.infra.log_entry_highlights",
-    // "api_integration.apis.infra.log_item",
-    // "api_integration.apis.infra.log_summary",
-    // "api_integration.apis.infra.logs_without_millis",
-    // "api_integration.apis.infra.metadata",
-    // "api_integration.apis.infra.metrics_explorer",
-    // "api_integration.apis.infra.sources",
-    // "api_integration.apis.infra.waffle",
-    // "api_integration.apis.kibana.kql_telemetry.kql_telemetry",
-    // "api_integration.apis.kibana.stats.stats",
-    // "api_integration.apis.logstash.cluster.load",
-    // "api_integration.apis.logstash.pipeline.delete",
-    // "api_integration.apis.logstash.pipeline.load",
-    // "api_integration.apis.logstash.pipeline.save",
-    // "api_integration.apis.logstash.pipelines.delete",
-    // "api_integration.apis.logstash.pipelines.list",
-    // "api_integration.apis.management.advanced_settings.feature_controls",
-    // "api_integration.apis.management.cross_cluster_replication.auto_follow_pattern",
-    // "api_integration.apis.management.cross_cluster_replication.follower_indices",
-    // "api_integration.apis.management.index_lifecycle_management.indices",
-    // "api_integration.apis.management.index_lifecycle_management.nodes",
-    // "api_integration.apis.management.index_lifecycle_management.policies",
-    // "api_integration.apis.management.index_lifecycle_management.templates",
-    // "api_integration.apis.management.index_management.indices",
-    // "api_integration.apis.management.index_management.mapping",
-    // "api_integration.apis.management.index_management.settings",
-    // "api_integration.apis.management.index_management.stats",
-    // "api_integration.apis.management.index_management.templates",
-    // "api_integration.apis.management.remote_clusters.remote_clusters",
-    // "api_integration.apis.management.rollup.index_patterns_extensions",
-    // "api_integration.apis.management.rollup.rollup_search",
-    // "api_integration.apis.maps.migrations",
-    // "api_integration.apis.monitoring.apm.instances",
-    // "api_integration.apis.monitoring.apm.overview",
-    // "api_integration.apis.monitoring.beats.detail",
-    // "api_integration.apis.monitoring.beats.list",
-    // "api_integration.apis.monitoring.beats.overview",
-    // "api_integration.apis.monitoring.cluster.list",
-    // "api_integration.apis.monitoring.cluster.overview",
-    // "api_integration.apis.monitoring.common.mappings_exist",
-    // "api_integration.apis.monitoring.elasticsearch.ccr_shard",
-    // "api_integration.apis.monitoring.elasticsearch.index_detail",
-    // "api_integration.apis.monitoring.elasticsearch.indices",
-    // "api_integration.apis.monitoring.elasticsearch.node_detail_advanced",
-    // "api_integration.apis.monitoring.elasticsearch.nodes",
-    // "api_integration.apis.monitoring.elasticsearch.overview",
-    // "api_integration.apis.monitoring.elasticsearch_settings.check_cluster",
-    // "api_integration.apis.monitoring.elasticsearch_settings.check_nodes",
-    // "api_integration.apis.monitoring.elasticsearch_settings.set_collection_enabled",
-    // "api_integration.apis.monitoring.elasticsearch_settings.set_collection_interval",
-    // "api_integration.apis.monitoring.kibana.instance",
-    // "api_integration.apis.monitoring.kibana.listing",
-    // "api_integration.apis.monitoring.kibana.overview",
-    // "api_integration.apis.monitoring.logs.cluster",
-    // "api_integration.apis.monitoring.logs.index_detail",
-    // "api_integration.apis.monitoring.logs.node_detail",
-    // "api_integration.apis.monitoring.logstash.node_detail",
-    // "api_integration.apis.monitoring.logstash.nodes",
-    // "api_integration.apis.monitoring.logstash.overview",
-    // "api_integration.apis.monitoring.setup.collection.detect_apm",
-    // "api_integration.apis.monitoring.setup.collection.detect_beats_management",
-    // "api_integration.apis.monitoring.setup.collection.detect_logstash_management",
-    // "api_integration.apis.monitoring.setup.collection.es_and_kibana_exclusive_mb",
-    // "api_integration.apis.monitoring.setup.collection.es_and_kibana_mb",
-    // "api_integration.apis.monitoring.setup.collection.kibana_exclusive_mb",
-    // "api_integration.apis.monitoring.setup.collection.kibana_mb",
-    // "api_integration.apis.monitoring.standalone_cluster.clusters",
-    // "api_integration.apis.security.basic_login",
-    // "api_integration.apis.security.builtin_es_privileges",
-    // "api_integration.apis.security.index_fields",
-    // "api_integration.apis.security.privileges",
-    // "api_integration.apis.security.roles",
-    // "api_integration.apis.short_urls.feature_controls",
-    // "api_integration.apis.siem.authentications",
-    // "api_integration.apis.siem.domains",
-    // "api_integration.apis.siem.events",
-    // "api_integration.apis.siem.feature_controls",
-    // "api_integration.apis.siem.hosts",
-    // "api_integration.apis.siem.kpi_hosts",
-    // "api_integration.apis.siem.kpi_network",
-    // "api_integration.apis.siem.network_dns",
-    // "api_integration.apis.siem.network_top_n_flow",
-    // "api_integration.apis.siem.overview_host",
-    // "api_integration.apis.siem.overview_network",
-    // "api_integration.apis.siem.saved_objects.notes",
-    // "api_integration.apis.siem.saved_objects.pinned_events",
-    // "api_integration.apis.siem.saved_objects.timeline",
-    // "api_integration.apis.siem.sources",
-    // "api_integration.apis.siem.timeline_details",
-    // "api_integration.apis.siem.tls",
-    // "api_integration.apis.siem.uncommon_processes",
-    // "api_integration.apis.siem.users",
-    // "api_integration.apis.spaces.saved_objects",
-    // "api_integration.apis.telemetry.telemetry_local",
-    // "api_integration.apis.uptime.feature_controls",
-    // "api_integration.apis.uptime.get_all_pings",
-    // "api_integration.apis.uptime.graphql.doc_count",
-    // "api_integration.apis.uptime.graphql.error_list",
-    // "api_integration.apis.uptime.graphql.filter_bar",
-    // "api_integration.apis.uptime.graphql.monitor_charts",
-    // "api_integration.apis.uptime.graphql.monitor_list",
-    // "api_integration.apis.uptime.graphql.monitor_page_title",
-    // "api_integration.apis.uptime.graphql.monitor_states",
-    // "api_integration.apis.uptime.graphql.monitor_status_bar",
-    // "api_integration.apis.uptime.graphql.ping_list",
-    // "api_integration.apis.uptime.graphql.snapshot_histogram",
-    // "api_integration.apis.uptime.location",
-    // "api_integration.apis.xpack_main.features.features",
-    // "api_integration.apis.xpack_main.settings.settings",
-    "api_integration.apis.apm",
+    ["api_integration.apis.apm",
     "api_integration.apis.beats",
     "api_integration.apis.code",
     "api_integration.apis.code",
     "api_integration.apis.console",
     "api_integration.apis.es",
     "api_integration.apis.infra",
-    "api_integration.apis.kibana",
-    "api_integration.apis.logstash",
+    "api_integration.apis.kibana"],
+    ["api_integration.apis.logstash",
     "api_integration.apis.management",
     "api_integration.apis.maps",
     "api_integration.apis.monitoring",
     "api_integration.apis.security",
     "api_integration.apis.short_urls",
-    "api_integration.apis.siem",
-    "api_integration.apis.spaces",
+    "api_integration.apis.siem"],
+    ["api_integration.apis.spaces",
     "api_integration.apis.telemetry",
     "api_integration.apis.uptime",
-    "api_integration.apis.xpack_main",
+    "api_integration.apis.xpack_main"],
   ],
   "test/alerting_api_integration/config_security_enabled.js": [
-    "alerting_api_integration.apis.actions.builtin_action_types.email",
+    ["alerting_api_integration.apis.actions.builtin_action_types.email",
     "alerting_api_integration.apis.actions.builtin_action_types.es_index",
     "alerting_api_integration.apis.actions.builtin_action_types.server_log",
     "alerting_api_integration.apis.actions.builtin_action_types.slack",
@@ -438,11 +310,11 @@ def xpackSuites = [
     "alerting_api_integration.apis.alerting.find",
     "alerting_api_integration.apis.alerting.get",
     "alerting_api_integration.apis.alerting.list_alert_types",
-    "alerting_api_integration.apis.alerting.update"
+    "alerting_api_integration.apis.alerting.update"]
   ],
   "test/plugin_api_integration/config.js": [
-    "plugin_api_integration.encrypted_saved_objects.encrypted_saved_objects_api",
-    "plugin_api_integration.task_manager.task_manager_integration"
+    ["plugin_api_integration.encrypted_saved_objects.encrypted_saved_objects_api",
+    "plugin_api_integration.task_manager.task_manager_integration"]
   ],
   "test/kerberos_api_integration/config.ts": [
     "kerberos_api_integration.apis.security.kerberos_login"
@@ -454,10 +326,10 @@ def xpackSuites = [
     "saml_api_integration.apis.security.saml_login"
   ],
   "test/token_api_integration/config.js": [
-    "token_api_integration.auth.header",
+    ["token_api_integration.auth.header",
     "token_api_integration.auth.login",
     "token_api_integration.auth.logout",
-    "token_api_integration.auth.session"
+    "token_api_integration.auth.session"]
   ],
   "test/oidc_api_integration/config.ts": [
     "oidc_api_integration.apis.authorization_code_flow.oidc_auth"
@@ -466,100 +338,100 @@ def xpackSuites = [
     "oidc_api_integration.apis.implicit_flow.oidc_auth"
   ],
   "test/spaces_api_integration/spaces_only/config.ts": [
-    "spaces_api_integration.spaces_only.apis.create",
+    ["spaces_api_integration.spaces_only.apis.create",
     "spaces_api_integration.spaces_only.apis.delete",
     "spaces_api_integration.spaces_only.apis.get_all",
     "spaces_api_integration.spaces_only.apis.select",
-    "spaces_api_integration.spaces_only.apis.update"
+    "spaces_api_integration.spaces_only.apis.update"]
   ],
   "test/spaces_api_integration/security_and_spaces/config_trial.ts": [
-    "spaces_api_integration.security_and_spaces.apis.create",
+    ["spaces_api_integration.security_and_spaces.apis.create",
     "spaces_api_integration.security_and_spaces.apis.delete",
     "spaces_api_integration.security_and_spaces.apis.get_all",
     "spaces_api_integration.security_and_spaces.apis.select",
-    "spaces_api_integration.security_and_spaces.apis.update"
+    "spaces_api_integration.security_and_spaces.apis.update"]
   ],
   "test/spaces_api_integration/security_and_spaces/config_basic.ts": [
-    "spaces_api_integration.security_and_spaces.apis.create",
+    ["spaces_api_integration.security_and_spaces.apis.create",
     "spaces_api_integration.security_and_spaces.apis.delete",
     "spaces_api_integration.security_and_spaces.apis.get_all",
     "spaces_api_integration.security_and_spaces.apis.select",
-    "spaces_api_integration.security_and_spaces.apis.update"
+    "spaces_api_integration.security_and_spaces.apis.update"]
   ],
   "test/saved_object_api_integration/security_and_spaces/config_trial.ts": [
-    "saved_object_api_integration.security_and_spaces.apis.bulk_create",
+    ["saved_object_api_integration.security_and_spaces.apis.bulk_create",
     "saved_object_api_integration.security_and_spaces.apis.bulk_get",
     "saved_object_api_integration.security_and_spaces.apis.create",
     "saved_object_api_integration.security_and_spaces.apis.delete",
-    "saved_object_api_integration.security_and_spaces.apis.export",
-    "saved_object_api_integration.security_and_spaces.apis.find",
+    "saved_object_api_integration.security_and_spaces.apis.export"],
+    ["saved_object_api_integration.security_and_spaces.apis.find",
     "saved_object_api_integration.security_and_spaces.apis.get",
     "saved_object_api_integration.security_and_spaces.apis.import",
     "saved_object_api_integration.security_and_spaces.apis.resolve_import_errors",
-    "saved_object_api_integration.security_and_spaces.apis.update"
+    "saved_object_api_integration.security_and_spaces.apis.update"]
   ],
   "test/saved_object_api_integration/security_and_spaces/config_basic.ts": [
-    "saved_object_api_integration.security_and_spaces.apis.bulk_create",
+    ["saved_object_api_integration.security_and_spaces.apis.bulk_create",
     "saved_object_api_integration.security_and_spaces.apis.bulk_get",
     "saved_object_api_integration.security_and_spaces.apis.create",
     "saved_object_api_integration.security_and_spaces.apis.delete",
-    "saved_object_api_integration.security_and_spaces.apis.export",
-    "saved_object_api_integration.security_and_spaces.apis.find",
+    "saved_object_api_integration.security_and_spaces.apis.export"],
+    ["saved_object_api_integration.security_and_spaces.apis.find",
     "saved_object_api_integration.security_and_spaces.apis.get",
     "saved_object_api_integration.security_and_spaces.apis.import",
     "saved_object_api_integration.security_and_spaces.apis.resolve_import_errors",
-    "saved_object_api_integration.security_and_spaces.apis.update"
+    "saved_object_api_integration.security_and_spaces.apis.update"]
   ],
   "test/saved_object_api_integration/security_only/config_trial.ts": [
-    "saved_object_api_integration.security_only.apis.bulk_create",
+    ["saved_object_api_integration.security_only.apis.bulk_create",
     "saved_object_api_integration.security_only.apis.bulk_get",
     "saved_object_api_integration.security_only.apis.create",
     "saved_object_api_integration.security_only.apis.delete",
-    "saved_object_api_integration.security_only.apis.export",
-    "saved_object_api_integration.security_only.apis.find",
+    "saved_object_api_integration.security_only.apis.export"],
+    ["saved_object_api_integration.security_only.apis.find",
     "saved_object_api_integration.security_only.apis.get",
     "saved_object_api_integration.security_only.apis.import",
     "saved_object_api_integration.security_only.apis.resolve_import_errors",
-    "saved_object_api_integration.security_only.apis.update"
+    "saved_object_api_integration.security_only.apis.update"]
   ],
   "test/saved_object_api_integration/security_only/config_basic.ts": [
-    "saved_object_api_integration.security_only.apis.bulk_create",
+    ["saved_object_api_integration.security_only.apis.bulk_create",
     "saved_object_api_integration.security_only.apis.bulk_get",
     "saved_object_api_integration.security_only.apis.create",
     "saved_object_api_integration.security_only.apis.delete",
-    "saved_object_api_integration.security_only.apis.export",
-    "saved_object_api_integration.security_only.apis.find",
+    "saved_object_api_integration.security_only.apis.export"],
+    ["saved_object_api_integration.security_only.apis.find",
     "saved_object_api_integration.security_only.apis.get",
     "saved_object_api_integration.security_only.apis.import",
     "saved_object_api_integration.security_only.apis.resolve_import_errors",
-    "saved_object_api_integration.security_only.apis.update"
+    "saved_object_api_integration.security_only.apis.update"]
   ],
   "test/saved_object_api_integration/spaces_only/config.ts": [
-    "saved_object_api_integration.spaces_only.apis.bulk_create",
+    ["saved_object_api_integration.spaces_only.apis.bulk_create",
     "saved_object_api_integration.spaces_only.apis.bulk_get",
     "saved_object_api_integration.spaces_only.apis.create",
     "saved_object_api_integration.spaces_only.apis.delete",
-    "saved_object_api_integration.spaces_only.apis.export",
-    "saved_object_api_integration.spaces_only.apis.find",
+    "saved_object_api_integration.spaces_only.apis.export"],
+    ["saved_object_api_integration.spaces_only.apis.find",
     "saved_object_api_integration.spaces_only.apis.get",
     "saved_object_api_integration.spaces_only.apis.import",
     "saved_object_api_integration.spaces_only.apis.resolve_import_errors",
-    "saved_object_api_integration.spaces_only.apis.update"
+    "saved_object_api_integration.spaces_only.apis.update"]
   ],
   "test/ui_capabilities/security_and_spaces/config.ts": [
-    "ui_capabilities.security_and_spaces.tests.catalogue",
+    ["ui_capabilities.security_and_spaces.tests.catalogue",
     "ui_capabilities.security_and_spaces.tests.foo",
-    "ui_capabilities.security_and_spaces.tests.nav_links"
+    "ui_capabilities.security_and_spaces.tests.nav_links"]
   ],
   "test/ui_capabilities/security_only/config.ts": [
-    "ui_capabilities.security_only.tests.catalogue",
+    ["ui_capabilities.security_only.tests.catalogue",
     "ui_capabilities.security_only.tests.foo",
-    "ui_capabilities.security_only.tests.nav_links"
+    "ui_capabilities.security_only.tests.nav_links"]
   ],
   "test/ui_capabilities/spaces_only/config.ts": [
-    "ui_capabilities.spaces_only.tests.catalogue",
+    ["ui_capabilities.spaces_only.tests.catalogue",
     "ui_capabilities.spaces_only.tests.foo",
-    "ui_capabilities.spaces_only.tests.nav_links"
+    "ui_capabilities.spaces_only.tests.nav_links"]
   ],
   "test/upgrade_assistant_integration/config.js": [
     "upgrade_assistant_integration.upgrade_assistant.reindexing"
@@ -667,7 +539,7 @@ def ossCiGroupRunner = { additionalScript='' ->
 
 def xpackCiGroupRunner = { primaryConfigPaths, additionalScript='' ->
   return {
-    def configPaths = primaryConfigPaths + (xpackSuites.keySet() as String[]);
+    def configPaths = primaryConfigPaths + (xpackSuites.keySet().findAll { it != "test/functional/config.js" })
     def lastConfigPath = null
 
     cStage("xpack-testRunner") {
@@ -716,11 +588,11 @@ def xpackCiGroupRunner = { primaryConfigPaths, additionalScript='' ->
 
         configPaths.each { configPath ->
           while(!xpackSuites[configPath].isEmpty()) {
-            def testSuite = xpackSuites[configPath].pop()
+            def testSuites = [xpackSuites[configPath].pop()].flatten()
 
             if (configPath != lastConfigPath) {
               lastConfigPath = configPath
-              
+
               withEnv """
                 cd "\$XPACK_DIR"
 
@@ -742,24 +614,27 @@ def xpackCiGroupRunner = { primaryConfigPaths, additionalScript='' ->
                   returnStatus: true
                 ) == 0
               }
+
+              sh 'cat x-pack/test-server-output.log'
             }
 
             try {
-              cStage("xpack-ciGroup-${testSuite}") {
+              cStage(testSuites.join(", ")) {
                 withTestReporter {
+                  def tagArgs = testSuites.collect { "--include-tag '${it}'" }.join(" ")
+
                   withEnv """
                     set -e
-                    export CI_GROUP=${testSuite}
                     export TEST_BROWSER_HEADLESS=1
 
                     echo " -> Running functional and api tests"
                     cd "\$XPACK_DIR"
 
-                    checks-reporter-with-killswitch "X-Pack Chrome Functional tests / Group ${testSuite}" \
+                    checks-reporter-with-killswitch "X-Pack Chrome Functional tests / Group ${testSuites.join(", ")}" \
                       node ../scripts/functional_test_runner \
                         --debug --bail \
                         --config '${configPath}' \
-                        --include-tag '${testSuite}'
+                        ${tagArgs}
 
                     echo ""
                     echo ""
@@ -839,6 +714,9 @@ timestamps {
   ansiColor('xterm') {
     try {
       parallel([
+        'Status': {
+          // Update status of job, etc in a loop?
+        },
         'Build OSS Kibana': { buildOssKibana() },
         'oss-testRunner1': ossCiGroupRunner(),
         'oss-testRunner2': ossCiGroupRunner(),
@@ -861,41 +739,8 @@ timestamps {
         'oss-testRunner19': ossCiGroupRunner(),
         'oss-testRunner20': ossCiGroupRunner(),
         'Build Default Kibana': { buildDefaultKibana() },
-        // 'xpack-testRunner1': xpackCiGroupRunner(["test/reporting/configs/chromium_api.js"]),
-        // 'xpack-testRunner2': xpackCiGroupRunner(["test/reporting/configs/chromium_functional.js"]),
-        // 'xpack-testRunner3': xpackCiGroupRunner(["test/reporting/configs/generate_api.js"]), //-
-        // 'xpack-testRunner4': xpackCiGroupRunner(["test/functional/config.js"]), // //
-        // 'xpack-testRunner5': xpackCiGroupRunner(["test/api_integration/config_security_basic.js"]), //-
-        // 'xpack-testRunner6': xpackCiGroupRunner(["test/api_integration/config.js"]), //
-        // 'xpack-testRunner6-2': xpackCiGroupRunner(["test/api_integration/config.js"]), // 
-        // 'xpack-testRunner6-3': xpackCiGroupRunner(["test/api_integration/config.js"]), //
-        // 'xpack-testRunner7': xpackCiGroupRunner(["test/alerting_api_integration/config_security_enabled.js"]), //
-        // 'xpack-testRunner8': xpackCiGroupRunner(["test/plugin_api_integration/config.js"]), //-
-        // 'xpack-testRunner9': xpackCiGroupRunner(["test/kerberos_api_integration/config.ts"]), //-
-        // 'xpack-testRunner10': xpackCiGroupRunner(["test/kerberos_api_integration/anonymous_access.config.ts"]),
-        // 'xpack-testRunner11': xpackCiGroupRunner(["test/saml_api_integration/config.js"]), //-
-        // 'xpack-testRunner12': xpackCiGroupRunner(["test/token_api_integration/config.js"]), //-
-        // 'xpack-testRunner13': xpackCiGroupRunner(["test/oidc_api_integration/config.ts"]), //-
-        // 'xpack-testRunner14': xpackCiGroupRunner(["test/oidc_api_integration/implicit_flow.config.ts"]), //-
-        // 'xpack-testRunner16': xpackCiGroupRunner(["test/spaces_api_integration/spaces_only/config.ts"]), //-
-        // 'xpack-testRunner17': xpackCiGroupRunner(["test/spaces_api_integration/security_and_spaces/config_trial.ts"]), //
-        // 'xpack-testRunner18': xpackCiGroupRunner(["test/spaces_api_integration/security_and_spaces/config_basic.ts"]),
-        // 'xpack-testRunner19': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]), //
-        // 'xpack-testRunner19-2': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]), //
-        // 'xpack-testRunner20': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_basic.ts"]),// 
-        // 'xpack-testRunner21': xpackCiGroupRunner(["test/saved_object_api_integration/security_only/config_trial.ts"]),
-        // 'xpack-testRunner22': xpackCiGroupRunner(["test/saved_object_api_integration/security_only/config_basic.ts"]), //
-        // 'xpack-testRunner23': xpackCiGroupRunner(["test/saved_object_api_integration/spaces_only/config.ts"]),
-        // 'xpack-testRunner24': xpackCiGroupRunner(["test/ui_capabilities/security_and_spaces/config.ts"]),
-        // 'xpack-testRunner25': xpackCiGroupRunner(["test/ui_capabilities/security_only/config.ts"]), //-
-        // 'xpack-testRunner26': xpackCiGroupRunner(["test/ui_capabilities/spaces_only/config.ts"]),
-        // 'xpack-testRunner27': xpackCiGroupRunner(["test/upgrade_assistant_integration/config.js"]), //-
-        // 'xpack-testRunner28': xpackCiGroupRunner(["test/functional/config.js"]),
-        // 'xpack-testRunner29': xpackCiGroupRunner(["test/functional/config.js"]),
-        // 'xpack-testRunner30': xpackCiGroupRunner(["test/functional/config.js"]),
         'xpack-testRunner1': xpackCiGroupRunner(["test/reporting/configs/chromium_api.js"]),
         'xpack-testRunner2': xpackCiGroupRunner(["test/reporting/configs/chromium_functional.js"]),
-        'xpack-testRunner3': xpackCiGroupRunner(["test/reporting/configs/generate_api.js"]), //-
         'xpack-testRunner4': xpackCiGroupRunner(["test/functional/config.js"]),
         'xpack-testRunner4-2': xpackCiGroupRunner(["test/functional/config.js"]),
         'xpack-testRunner4-3': xpackCiGroupRunner(["test/functional/config.js"]),
@@ -906,11 +751,6 @@ timestamps {
         'xpack-testRunner4-8': xpackCiGroupRunner(["test/functional/config.js"]),
         'xpack-testRunner4-9': xpackCiGroupRunner(["test/functional/config.js"]),
         'xpack-testRunner4-10': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-11': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-12': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-13': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-14': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-15': xpackCiGroupRunner(["test/functional/config.js"]),
         'xpack-testRunner5': xpackCiGroupRunner([
           "test/api_integration/config_security_basic.js",
           "test/plugin_api_integration/config.js",
@@ -924,34 +764,16 @@ timestamps {
           "test/spaces_api_integration/spaces_only/config.ts",
           "test/ui_capabilities/security_only/config.ts",
           "test/upgrade_assistant_integration/config.js",
-        ]), //-
-        'xpack-testRunner6': xpackCiGroupRunner(["test/api_integration/config.js"]), //
-        'xpack-testRunner6-2': xpackCiGroupRunner(["test/api_integration/config.js"]), // 
-        'xpack-testRunner6-3': xpackCiGroupRunner(["test/api_integration/config.js"]), //
-        'xpack-testRunner7': xpackCiGroupRunner(["test/alerting_api_integration/config_security_enabled.js"]), //
-        // 'xpack-testRunner8': xpackCiGroupRunner([]), //-
-        // 'xpack-testRunner9': xpackCiGroupRunner(["test/kerberos_api_integration/config.ts"]), //-
-        'xpack-testRunner10': xpackCiGroupRunner(["test/kerberos_api_integration/anonymous_access.config.ts"]),
-        // 'xpack-testRunner11': xpackCiGroupRunner([]), //-
-        // 'xpack-testRunner12': xpackCiGroupRunner([]), //-
-        // 'xpack-testRunner13': xpackCiGroupRunner([]), //-
-        // 'xpack-testRunner14': xpackCiGroupRunner([]), //-
-        // 'xpack-testRunner16': xpackCiGroupRunner([]), //-
-        'xpack-testRunner17': xpackCiGroupRunner(["test/spaces_api_integration/security_and_spaces/config_trial.ts"]), //
-        'xpack-testRunner18': xpackCiGroupRunner(["test/spaces_api_integration/security_and_spaces/config_basic.ts"]),
-        'xpack-testRunner19': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]), //
-        'xpack-testRunner19-2': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]), //
-        'xpack-testRunner20': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_basic.ts"]),// 
-        'xpack-testRunner21': xpackCiGroupRunner(["test/saved_object_api_integration/security_only/config_trial.ts"]),
-        'xpack-testRunner22': xpackCiGroupRunner(["test/saved_object_api_integration/security_only/config_basic.ts"]), //
-        'xpack-testRunner23': xpackCiGroupRunner(["test/saved_object_api_integration/spaces_only/config.ts"]),
-        'xpack-testRunner24': xpackCiGroupRunner(["test/ui_capabilities/security_and_spaces/config.ts"]),
-        // 'xpack-testRunner25': xpackCiGroupRunner([]), //-
-        'xpack-testRunner26': xpackCiGroupRunner(["test/ui_capabilities/spaces_only/config.ts"]),
-        // 'xpack-testRunner27': xpackCiGroupRunner([]), //-
-        // 'xpack-testRunner28': xpackCiGroupRunner(["test/functional/config.js"]),
-        // 'xpack-testRunner29': xpackCiGroupRunner(["test/functional/config.js"]),
-        // 'xpack-testRunner30': xpackCiGroupRunner(["test/functional/config.js"]),
+        ]),
+        'xpack-testRunner6': xpackCiGroupRunner(["test/api_integration/config.js"]),
+        'xpack-testRunner6-2': xpackCiGroupRunner(["test/api_integration/config.js"]), 
+        'xpack-testRunner6-3': xpackCiGroupRunner(["test/api_integration/config.js"]),
+        'xpack-testRunner7': xpackCiGroupRunner(["test/alerting_api_integration/config_security_enabled.js"]),
+        'xpack-testRunner17': xpackCiGroupRunner(["test/spaces_api_integration/security_and_spaces/config_trial.ts"]),
+        'xpack-testRunner19': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]),
+        'xpack-testRunner19-2': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]),
+        'xpack-testRunner20': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_basic.ts"]) 
+        'xpack-testRunner22': xpackCiGroupRunner(["test/saved_object_api_integration/security_only/config_basic.ts"]),
         // 'oss-intake': {
         //   withBootstrappedWorker {
         //     stage('OSS Intake') {
