@@ -15,6 +15,21 @@ def workspaceArchiveFilename = 'workspace.archive.tar.gz'
 def ossWorkspaceArchiveFilename = 'workspace-oss.archive.tar.gz'
 def defaultWorkspaceArchiveFilename = 'workspace-default.archive.tar.gz'
 
+def RUN_OSS = false
+def RUN_DEFAULT = true
+
+def ossKibanaBuildComplete = true
+def ossKibanaBuildUploaded = true
+
+def defaultKibanaBuildComplete = true
+def defaultKibanaBuildUploaded = true
+
+def waitTil(conditionClosure) {
+  for(def i = 0; i < 50000 && !conditionClosure(); i++) {
+    sleep 10
+  }
+}
+
 def ossTestSuites = [
   "api_integration.apis.elasticsearch",
   "api_integration.apis.general.cookies",
@@ -147,9 +162,9 @@ def ossTestSuites = [
 def xpackSuites = [
   "test/reporting/configs/chromium_api.js": [
     ["reporting.api.bwc_existing_indexes",
-    "reporting.api.bwc_generation_urls",
-    "reporting.api.chromium_tests",
-    "reporting.api.usage"]
+     "reporting.api.bwc_generation_urls",
+     "reporting.api.chromium_tests",
+     "reporting.api.usage"]
   ],
   "test/reporting/configs/chromium_functional.js": [
     "reporting.functional.reporting"
@@ -159,93 +174,93 @@ def xpackSuites = [
   ],
   "test/functional/config.js": [
     ["functional.apps.advanced_settings.feature_controls.advanced_settings_security",
-    "functional.apps.advanced_settings.feature_controls.advanced_settings_spaces",
-    "functional.apps.apm.feature_controls.apm_security",
-    "functional.apps.apm.feature_controls.apm_spaces"],
+     "functional.apps.advanced_settings.feature_controls.advanced_settings_spaces",
+     "functional.apps.apm.feature_controls.apm_security",
+     "functional.apps.apm.feature_controls.apm_spaces"],
     ["functional.apps.canvas.feature_controls.canvas_security",
-    "functional.apps.canvas.feature_controls.canvas_spaces",
-    "functional.apps.canvas.smoke_test"],
-    ["functional.apps.code.code_intelligence",
-    "functional.apps.code.explore_repository",
-    "functional.apps.code.file_tree",
-    "functional.apps.code.history"],
-    ["functional.apps.code.manage_repositories",
-    "functional.apps.code.search",
-    "functional.apps.code.with_security"],
+     "functional.apps.canvas.feature_controls.canvas_spaces",
+     "functional.apps.canvas.smoke_test"],
+    "functional.apps.code.code_intelligence",
+     "functional.apps.code.explore_repository",
+     "functional.apps.code.file_tree",
+     "functional.apps.code.history",
+    "functional.apps.code.manage_repositories",
+     "functional.apps.code.search",
+     "functional.apps.code.with_security",
     "functional.apps.cross_cluster_replication.home_page",
     ["functional.apps.dashboard.feature_controls.dashboard_security",
-    "functional.apps.dashboard.feature_controls.dashboard_spaces"],
+     "functional.apps.dashboard.feature_controls.dashboard_spaces"],
     "functional.apps.dashboard_mode.dashboard_view_mode",
     ["functional.apps.dev_tools.feature_controls.dev_tools_security",
-    "functional.apps.dev_tools.feature_controls.dev_tools_spaces",
-    "functional.apps.dev_tools.searchprofiler_editor"],
+     "functional.apps.dev_tools.feature_controls.dev_tools_spaces",
+     "functional.apps.dev_tools.searchprofiler_editor"],
     ["functional.apps.discover.feature_controls.discover_security",
-    "functional.apps.discover.feature_controls.discover_spaces"],
+     "functional.apps.discover.feature_controls.discover_spaces"],
     ["functional.apps.graph.feature_controls.graph_security",
-    "functional.apps.graph.feature_controls.graph_spaces",
-    "functional.apps.graph.graph"],
+     "functional.apps.graph.feature_controls.graph_spaces",
+     "functional.apps.graph.graph"],
     "functional.apps.grok_debugger.grok_debugger",
     "functional.apps.index_lifecycle_management.home_page",
     "functional.apps.index_management.home_page",
     ["functional.apps.index_patterns.feature_controls.index_patterns_security",
-    "functional.apps.index_patterns.feature_controls.index_patterns_spaces"],
+     "functional.apps.index_patterns.feature_controls.index_patterns_spaces"],
     ["functional.apps.infra.feature_controls.infrastructure_security",
-    "functional.apps.infra.feature_controls.infrastructure_spaces",
-    "functional.apps.infra.feature_controls.logs_security",
-    "functional.apps.infra.feature_controls.logs_spaces",
-    "functional.apps.infra.home_page",
-    "functional.apps.infra.logs_source_configuration",
-    "functional.apps.infra.metrics_source_configuration"],
+     "functional.apps.infra.feature_controls.infrastructure_spaces",
+     "functional.apps.infra.feature_controls.logs_security",
+     "functional.apps.infra.feature_controls.logs_spaces",
+     "functional.apps.infra.home_page",
+     "functional.apps.infra.logs_source_configuration",
+     "functional.apps.infra.metrics_source_configuration"],
     ["functional.apps.license_management.home_page",
-    "functional.apps.logstash.pipeline_create",
-    "functional.apps.logstash.pipeline_list",
-    "functional.apps.machine_learning.feature_controls.ml_security",
-    "functional.apps.machine_learning.feature_controls.ml_spaces"],
-    ["functional.apps.maps.add_layer_panel",
-    "functional.apps.maps.documents_source.search_hits",
-    "functional.apps.maps.documents_source.top_hits",
-    "functional.apps.maps.embeddable.dashboard",
-    "functional.apps.maps.embeddable.embeddable_state",
-    "functional.apps.maps.embeddable.tooltip_filter_actions"],
+     "functional.apps.logstash.pipeline_create",
+     "functional.apps.logstash.pipeline_list",
+     "functional.apps.machine_learning.feature_controls.ml_security",
+     "functional.apps.machine_learning.feature_controls.ml_spaces"],
+    "functional.apps.maps.add_layer_panel",
+     "functional.apps.maps.documents_source.search_hits",
+     "functional.apps.maps.documents_source.top_hits",
+     "functional.apps.maps.embeddable.dashboard",
+     "functional.apps.maps.embeddable.embeddable_state",
+     "functional.apps.maps.embeddable.tooltip_filter_actions",
     ["functional.apps.maps.feature_controls.maps_security",
-    "functional.apps.maps.feature_controls.maps_spaces",
-    "functional.apps.maps.full_screen_mode",
-    "functional.apps.maps.import_geojson.add_layer_import_panel",
-    "functional.apps.maps.import_geojson.file_indexing_panel"],
+     "functional.apps.maps.feature_controls.maps_spaces"],
+     ["functional.apps.maps.full_screen_mode",
+     "functional.apps.maps.import_geojson.add_layer_import_panel",
+     "functional.apps.maps.import_geojson.file_indexing_panel"],
     "functional.apps.maps.joins",
     "functional.apps.maps.layer_errors",
     "functional.apps.maps.sample_data",
     "functional.apps.maps.saved_object_management",
     ["functional.apps.monitoring.beats.beat_detail",
-    "functional.apps.monitoring.beats.cluster",
-    "functional.apps.monitoring.beats.listing",
-    "functional.apps.monitoring.beats.overview"],
+     "functional.apps.monitoring.beats.cluster",
+     "functional.apps.monitoring.beats.listing",
+     "functional.apps.monitoring.beats.overview"],
     ["functional.apps.monitoring.cluster.alerts",
-    "functional.apps.monitoring.cluster.list",
-    "functional.apps.monitoring.cluster.overview"],
+     "functional.apps.monitoring.cluster.list",
+     "functional.apps.monitoring.cluster.overview"],
     ["functional.apps.monitoring.elasticsearch.index_detail",
-    "functional.apps.monitoring.elasticsearch.indices",
-    "functional.apps.monitoring.elasticsearch.node_detail",
-    "functional.apps.monitoring.elasticsearch.nodes",
-    "functional.apps.monitoring.elasticsearch.overview",
-    "functional.apps.monitoring.elasticsearch.shards"],
+     "functional.apps.monitoring.elasticsearch.indices",
+     "functional.apps.monitoring.elasticsearch.node_detail",
+     "functional.apps.monitoring.elasticsearch.nodes",
+     "functional.apps.monitoring.elasticsearch.overview",
+     "functional.apps.monitoring.elasticsearch.shards"],
     ["functional.apps.monitoring.enable_monitoring",
-    "functional.apps.monitoring.feature_controls.monitoring_security",
-    "functional.apps.monitoring.feature_controls.monitoring_spaces",
-    "functional.apps.monitoring.kibana.instances",
-    "functional.apps.monitoring.kibana.overview",
-    "functional.apps.monitoring.logstash.pipelines"],
+     "functional.apps.monitoring.feature_controls.monitoring_security",
+     "functional.apps.monitoring.feature_controls.monitoring_spaces",
+     "functional.apps.monitoring.kibana.instances",
+     "functional.apps.monitoring.kibana.overview",
+     "functional.apps.monitoring.logstash.pipelines"],
     "functional.apps.remote_clusters.home_page",
     "functional.apps.rollup_job.rollup_jobs",
     "functional.apps.saved_objects_management.feature_controls.saved_objects_management_security",
     ["functional.apps.security.doc_level_security_roles",
-    "functional.apps.security.field_level_security"],
+     "functional.apps.security.field_level_security"],
     ["functional.apps.security.management",
-    "functional.apps.security.rbac_phase1",
-    "functional.apps.security.secure_roles_perm"],
+     "functional.apps.security.rbac_phase1",
+     "functional.apps.security.secure_roles_perm"],
     ["functional.apps.security.security",
-    "functional.apps.security.user_email",
-    "functional.apps.security.users"],
+     "functional.apps.security.user_email",
+     "functional.apps.security.users"],
     "functional.apps.snapshot_restore.home_page",
     "functional.apps.spaces.feature_controls.spaces_security",
     "functional.apps.spaces.spaces_selection",
@@ -254,67 +269,67 @@ def xpackSuites = [
     "functional.apps.timelion.feature_controls.timelion_spaces",
     "functional.apps.upgrade_assistant.upgrade_assistant",
     ["functional.apps.uptime.feature_controls.uptime_security",
-    "functional.apps.uptime.feature_controls.uptime_spaces",
-    "functional.apps.uptime.monitor",
-    "functional.apps.uptime.overview"],
+     "functional.apps.uptime.feature_controls.uptime_spaces",
+     "functional.apps.uptime.monitor",
+     "functional.apps.uptime.overview"],
     ["functional.apps.visualize.feature_controls.visualize_security",
-    "functional.apps.visualize.feature_controls.visualize_spaces",
-    "functional.apps.watcher.watcher_test"],
+     "functional.apps.visualize.feature_controls.visualize_spaces",
+     "functional.apps.watcher.watcher_test"],
     "functional.apps.maps.es_geo_grid_source", // slow
   ],
   "test/api_integration/config_security_basic.js": [
     ["api_integration.apis.security.basic_login",
-    "api_integration.apis.security.builtin_es_privileges",
-    "api_integration.apis.security.index_fields",
-    "api_integration.apis.security.privileges",
-    "api_integration.apis.security.roles"]
+     "api_integration.apis.security.builtin_es_privileges",
+     "api_integration.apis.security.index_fields",
+     "api_integration.apis.security.privileges",
+     "api_integration.apis.security.roles"]
   ],
   "test/api_integration/config.js": [
     ["api_integration.apis.apm",
-    "api_integration.apis.beats",
-    "api_integration.apis.code",
-    "api_integration.apis.code",
-    "api_integration.apis.console",
-    "api_integration.apis.es",
-    "api_integration.apis.infra",
-    "api_integration.apis.kibana"],
+     "api_integration.apis.beats",
+     "api_integration.apis.code",
+     "api_integration.apis.code",
+     "api_integration.apis.console",
+     "api_integration.apis.es",
+     "api_integration.apis.infra",
+     "api_integration.apis.kibana"],
     ["api_integration.apis.logstash",
-    "api_integration.apis.management",
-    "api_integration.apis.maps",
-    "api_integration.apis.monitoring",
-    "api_integration.apis.security",
-    "api_integration.apis.short_urls",
-    "api_integration.apis.siem"],
+     "api_integration.apis.management",
+     "api_integration.apis.maps",
+     "api_integration.apis.monitoring",
+     "api_integration.apis.security",
+     "api_integration.apis.short_urls",
+     "api_integration.apis.siem"],
     ["api_integration.apis.spaces",
-    "api_integration.apis.telemetry",
-    "api_integration.apis.uptime",
-    "api_integration.apis.xpack_main"],
+     "api_integration.apis.telemetry",
+     "api_integration.apis.uptime",
+     "api_integration.apis.xpack_main"],
   ],
   "test/alerting_api_integration/config_security_enabled.js": [
     ["alerting_api_integration.apis.actions.builtin_action_types.email",
-    "alerting_api_integration.apis.actions.builtin_action_types.es_index",
-    "alerting_api_integration.apis.actions.builtin_action_types.server_log",
-    "alerting_api_integration.apis.actions.builtin_action_types.slack",
-    "alerting_api_integration.apis.actions.create",
-    "alerting_api_integration.apis.actions.delete",
-    "alerting_api_integration.apis.actions.execute",
-    "alerting_api_integration.apis.actions.find",
-    "alerting_api_integration.apis.actions.get",
-    "alerting_api_integration.apis.actions.list_action_types",
-    "alerting_api_integration.apis.actions.update",
-    "alerting_api_integration.apis.alerting.alerts",
-    "alerting_api_integration.apis.alerting.create",
-    "alerting_api_integration.apis.alerting.delete",
-    "alerting_api_integration.apis.alerting.disable",
-    "alerting_api_integration.apis.alerting.enable",
-    "alerting_api_integration.apis.alerting.find",
-    "alerting_api_integration.apis.alerting.get",
-    "alerting_api_integration.apis.alerting.list_alert_types",
-    "alerting_api_integration.apis.alerting.update"]
+     "alerting_api_integration.apis.actions.builtin_action_types.es_index",
+     "alerting_api_integration.apis.actions.builtin_action_types.server_log",
+     "alerting_api_integration.apis.actions.builtin_action_types.slack",
+     "alerting_api_integration.apis.actions.create",
+     "alerting_api_integration.apis.actions.delete",
+     "alerting_api_integration.apis.actions.execute",
+     "alerting_api_integration.apis.actions.find",
+     "alerting_api_integration.apis.actions.get",
+     "alerting_api_integration.apis.actions.list_action_types",
+     "alerting_api_integration.apis.actions.update",
+     "alerting_api_integration.apis.alerting.alerts",
+     "alerting_api_integration.apis.alerting.create",
+     "alerting_api_integration.apis.alerting.delete",
+     "alerting_api_integration.apis.alerting.disable",
+     "alerting_api_integration.apis.alerting.enable",
+     "alerting_api_integration.apis.alerting.find",
+     "alerting_api_integration.apis.alerting.get",
+     "alerting_api_integration.apis.alerting.list_alert_types",
+     "alerting_api_integration.apis.alerting.update"]
   ],
   "test/plugin_api_integration/config.js": [
     ["plugin_api_integration.encrypted_saved_objects.encrypted_saved_objects_api",
-    "plugin_api_integration.task_manager.task_manager_integration"]
+     "plugin_api_integration.task_manager.task_manager_integration"]
   ],
   "test/kerberos_api_integration/config.ts": [
     "kerberos_api_integration.apis.security.kerberos_login"
@@ -327,9 +342,9 @@ def xpackSuites = [
   ],
   "test/token_api_integration/config.js": [
     ["token_api_integration.auth.header",
-    "token_api_integration.auth.login",
-    "token_api_integration.auth.logout",
-    "token_api_integration.auth.session"]
+     "token_api_integration.auth.login",
+     "token_api_integration.auth.logout",
+     "token_api_integration.auth.session"]
   ],
   "test/oidc_api_integration/config.ts": [
     "oidc_api_integration.apis.authorization_code_flow.oidc_auth"
@@ -339,491 +354,558 @@ def xpackSuites = [
   ],
   "test/spaces_api_integration/spaces_only/config.ts": [
     ["spaces_api_integration.spaces_only.apis.create",
-    "spaces_api_integration.spaces_only.apis.delete",
-    "spaces_api_integration.spaces_only.apis.get_all",
-    "spaces_api_integration.spaces_only.apis.select",
-    "spaces_api_integration.spaces_only.apis.update"]
+     "spaces_api_integration.spaces_only.apis.delete",
+     "spaces_api_integration.spaces_only.apis.get_all",
+     "spaces_api_integration.spaces_only.apis.select",
+     "spaces_api_integration.spaces_only.apis.update"]
   ],
   "test/spaces_api_integration/security_and_spaces/config_trial.ts": [
     ["spaces_api_integration.security_and_spaces.apis.create",
-    "spaces_api_integration.security_and_spaces.apis.delete",
-    "spaces_api_integration.security_and_spaces.apis.get_all",
-    "spaces_api_integration.security_and_spaces.apis.select",
-    "spaces_api_integration.security_and_spaces.apis.update"]
+     "spaces_api_integration.security_and_spaces.apis.delete",
+     "spaces_api_integration.security_and_spaces.apis.get_all",
+     "spaces_api_integration.security_and_spaces.apis.select",
+     "spaces_api_integration.security_and_spaces.apis.update"]
   ],
   "test/spaces_api_integration/security_and_spaces/config_basic.ts": [
     ["spaces_api_integration.security_and_spaces.apis.create",
-    "spaces_api_integration.security_and_spaces.apis.delete",
-    "spaces_api_integration.security_and_spaces.apis.get_all",
-    "spaces_api_integration.security_and_spaces.apis.select",
-    "spaces_api_integration.security_and_spaces.apis.update"]
+     "spaces_api_integration.security_and_spaces.apis.delete",
+     "spaces_api_integration.security_and_spaces.apis.get_all",
+     "spaces_api_integration.security_and_spaces.apis.select",
+     "spaces_api_integration.security_and_spaces.apis.update"]
   ],
   "test/saved_object_api_integration/security_and_spaces/config_trial.ts": [
     ["saved_object_api_integration.security_and_spaces.apis.bulk_create",
-    "saved_object_api_integration.security_and_spaces.apis.bulk_get",
-    "saved_object_api_integration.security_and_spaces.apis.create",
-    "saved_object_api_integration.security_and_spaces.apis.delete",
-    "saved_object_api_integration.security_and_spaces.apis.export"],
-    ["saved_object_api_integration.security_and_spaces.apis.find",
-    "saved_object_api_integration.security_and_spaces.apis.get",
-    "saved_object_api_integration.security_and_spaces.apis.import",
-    "saved_object_api_integration.security_and_spaces.apis.resolve_import_errors",
-    "saved_object_api_integration.security_and_spaces.apis.update"]
+     "saved_object_api_integration.security_and_spaces.apis.bulk_get",
+     "saved_object_api_integration.security_and_spaces.apis.create"],
+     ["saved_object_api_integration.security_and_spaces.apis.delete",
+     "saved_object_api_integration.security_and_spaces.apis.export",
+     "saved_object_api_integration.security_and_spaces.apis.find",
+     "saved_object_api_integration.security_and_spaces.apis.get"],
+     ["saved_object_api_integration.security_and_spaces.apis.import",
+     "saved_object_api_integration.security_and_spaces.apis.resolve_import_errors",
+     "saved_object_api_integration.security_and_spaces.apis.update"]
   ],
   "test/saved_object_api_integration/security_and_spaces/config_basic.ts": [
     ["saved_object_api_integration.security_and_spaces.apis.bulk_create",
-    "saved_object_api_integration.security_and_spaces.apis.bulk_get",
-    "saved_object_api_integration.security_and_spaces.apis.create",
-    "saved_object_api_integration.security_and_spaces.apis.delete",
-    "saved_object_api_integration.security_and_spaces.apis.export"],
+     "saved_object_api_integration.security_and_spaces.apis.bulk_get",
+     "saved_object_api_integration.security_and_spaces.apis.create",
+     "saved_object_api_integration.security_and_spaces.apis.delete",
+     "saved_object_api_integration.security_and_spaces.apis.export"],
     ["saved_object_api_integration.security_and_spaces.apis.find",
-    "saved_object_api_integration.security_and_spaces.apis.get",
-    "saved_object_api_integration.security_and_spaces.apis.import",
-    "saved_object_api_integration.security_and_spaces.apis.resolve_import_errors",
-    "saved_object_api_integration.security_and_spaces.apis.update"]
+     "saved_object_api_integration.security_and_spaces.apis.get",
+     "saved_object_api_integration.security_and_spaces.apis.import",
+     "saved_object_api_integration.security_and_spaces.apis.resolve_import_errors",
+     "saved_object_api_integration.security_and_spaces.apis.update"]
   ],
   "test/saved_object_api_integration/security_only/config_trial.ts": [
     ["saved_object_api_integration.security_only.apis.bulk_create",
-    "saved_object_api_integration.security_only.apis.bulk_get",
-    "saved_object_api_integration.security_only.apis.create",
-    "saved_object_api_integration.security_only.apis.delete",
-    "saved_object_api_integration.security_only.apis.export"],
+     "saved_object_api_integration.security_only.apis.bulk_get",
+     "saved_object_api_integration.security_only.apis.create",
+     "saved_object_api_integration.security_only.apis.delete",
+     "saved_object_api_integration.security_only.apis.export"],
     ["saved_object_api_integration.security_only.apis.find",
-    "saved_object_api_integration.security_only.apis.get",
-    "saved_object_api_integration.security_only.apis.import",
-    "saved_object_api_integration.security_only.apis.resolve_import_errors",
-    "saved_object_api_integration.security_only.apis.update"]
+     "saved_object_api_integration.security_only.apis.get",
+     "saved_object_api_integration.security_only.apis.import",
+     "saved_object_api_integration.security_only.apis.resolve_import_errors",
+     "saved_object_api_integration.security_only.apis.update"]
   ],
   "test/saved_object_api_integration/security_only/config_basic.ts": [
     ["saved_object_api_integration.security_only.apis.bulk_create",
-    "saved_object_api_integration.security_only.apis.bulk_get",
-    "saved_object_api_integration.security_only.apis.create",
-    "saved_object_api_integration.security_only.apis.delete",
-    "saved_object_api_integration.security_only.apis.export"],
+     "saved_object_api_integration.security_only.apis.bulk_get",
+     "saved_object_api_integration.security_only.apis.create",
+     "saved_object_api_integration.security_only.apis.delete",
+     "saved_object_api_integration.security_only.apis.export"],
     ["saved_object_api_integration.security_only.apis.find",
-    "saved_object_api_integration.security_only.apis.get",
-    "saved_object_api_integration.security_only.apis.import",
-    "saved_object_api_integration.security_only.apis.resolve_import_errors",
-    "saved_object_api_integration.security_only.apis.update"]
+     "saved_object_api_integration.security_only.apis.get",
+     "saved_object_api_integration.security_only.apis.import",
+     "saved_object_api_integration.security_only.apis.resolve_import_errors",
+     "saved_object_api_integration.security_only.apis.update"]
   ],
   "test/saved_object_api_integration/spaces_only/config.ts": [
     ["saved_object_api_integration.spaces_only.apis.bulk_create",
-    "saved_object_api_integration.spaces_only.apis.bulk_get",
-    "saved_object_api_integration.spaces_only.apis.create",
-    "saved_object_api_integration.spaces_only.apis.delete",
-    "saved_object_api_integration.spaces_only.apis.export"],
+     "saved_object_api_integration.spaces_only.apis.bulk_get",
+     "saved_object_api_integration.spaces_only.apis.create",
+     "saved_object_api_integration.spaces_only.apis.delete",
+     "saved_object_api_integration.spaces_only.apis.export"],
     ["saved_object_api_integration.spaces_only.apis.find",
-    "saved_object_api_integration.spaces_only.apis.get",
-    "saved_object_api_integration.spaces_only.apis.import",
-    "saved_object_api_integration.spaces_only.apis.resolve_import_errors",
-    "saved_object_api_integration.spaces_only.apis.update"]
+     "saved_object_api_integration.spaces_only.apis.get",
+     "saved_object_api_integration.spaces_only.apis.import",
+     "saved_object_api_integration.spaces_only.apis.resolve_import_errors",
+     "saved_object_api_integration.spaces_only.apis.update"]
   ],
   "test/ui_capabilities/security_and_spaces/config.ts": [
     ["ui_capabilities.security_and_spaces.tests.catalogue",
-    "ui_capabilities.security_and_spaces.tests.foo",
-    "ui_capabilities.security_and_spaces.tests.nav_links"]
+     "ui_capabilities.security_and_spaces.tests.foo",
+     "ui_capabilities.security_and_spaces.tests.nav_links"]
   ],
   "test/ui_capabilities/security_only/config.ts": [
     ["ui_capabilities.security_only.tests.catalogue",
-    "ui_capabilities.security_only.tests.foo",
-    "ui_capabilities.security_only.tests.nav_links"]
+     "ui_capabilities.security_only.tests.foo",
+     "ui_capabilities.security_only.tests.nav_links"]
   ],
   "test/ui_capabilities/spaces_only/config.ts": [
     ["ui_capabilities.spaces_only.tests.catalogue",
-    "ui_capabilities.spaces_only.tests.foo",
-    "ui_capabilities.spaces_only.tests.nav_links"]
+     "ui_capabilities.spaces_only.tests.foo",
+     "ui_capabilities.spaces_only.tests.nav_links"]
   ],
   "test/upgrade_assistant_integration/config.js": [
     "upgrade_assistant_integration.upgrade_assistant.reindexing"
   ]
 ]
 
-// TODO - temporary stage wrapper
-def cStage(name, closure) {
-  print "Stage: ${name}"
-  closure()
-}
+class CStage {
+  String name
+  String fullName
 
-def ossKibanaBuildComplete = false
-def ossKibanaBuildUploaded = false
+  List<CStage> stages = []
+  Date start
+  Date end
+  WorkflowScript ctx
 
-def defaultKibanaBuildComplete = false
-def defaultKibanaBuildUploaded = false
+  CStage(name, prevName, ctx) {
+    this.name = name
+    this.fullName = "${prevName}[${name}]"
+    this.ctx = ctx
+    this.start = new Date()
+  }
 
-def waitTil(conditionClosure) {
-  for(def i = 0; i < 50000 && !conditionClosure(); i++) {
-    sleep 10
+  def addStage(CStage stage) {
+    this.stages << stage
+  }
+
+  def setEnd() {
+    this.end = new Date();
   }
 }
 
-def ossCiGroupRunner = { additionalScript='' ->
-  return {
-    cStage("oss-testRunner") {
-      sleep 360
+class StageContext {
+  CStage parentStage
+  Closure cStage
 
-      waitTil { ossKibanaBuildComplete }
-      // TODO need to move functionalTests:ensureAllTestsInCiGroup to before the build
-      node('linux && immutable && tests') {
-        skipDefaultCheckout()
-
-        env.HOME = env.JENKINS_HOME
-
-        sleep 150
-
-        waitTil { ossKibanaBuildUploaded }
-
-        cStage('Download archive') {
-          step([
-            $class: 'DownloadStep',
-            credentialsId: 'kibana-ci-gcs-plugin',
-            bucketUri: "gs://kibana-pipeline-testing/workspaces/latest/${ossWorkspaceArchiveFilename}",
-            localDirectory: env.WORKSPACE
-          ])
-        }
-
-        cStage('Extract archive') {
-          bash "tar -xzf workspaces/latest/${ossWorkspaceArchiveFilename}"
-          bash 'rm -rf /var/lib/jenkins/.kibana/node && mv var/lib/jenkins/.kibana/node /var/lib/jenkins/.kibana/'
-        }
-
-        withEnv """
-          set -e
-          export TEST_BROWSER_HEADLESS=1
-
-          echo " -> extracting default Kibana distributable for use in functional tests"
-          cd "\$KIBANA_DIR"
-          linuxBuild="\$(find "\$KIBANA_DIR/target" -name 'kibana-*-linux-x86_64.tar.gz')"
-          installDir="\$PARENT_DIR/install/kibana"
-          mkdir -p "\$installDir"
-          tar -xzf "\$linuxBuild" -C "\$installDir" --strip=1
-
-          nohup yarn test:ui:server --kibana-install-dir "\$installDir" > test-server-output.log &
-        """
-
-        sleep 60 // TODO
-
-        while(!ossTestSuites.isEmpty()) {
-          def testSuite = ossTestSuites.pop()
-
-          try {
-            cStage("oss-ciGroup-${testSuite}") {
-              withTestReporter {
-                withEnv """
-                  set -e
-                  export CI_GROUP=${testSuite}
-                  export TEST_BROWSER_HEADLESS=1
-
-                  cd "\$KIBANA_DIR"
-
-                  checks-reporter-with-killswitch "Functional tests / Group ${testSuite}" \
-                    node scripts/functional_test_runner \
-                      --include-tag '${testSuite}' \
-                      # --config test/functional/config.js \
-                      # --config test/functional/config.firefox.js \
-                      --bail --debug \
-                      --kibana-install-dir "\$installDir"
-
-                  ${additionalScript ?: ''}
-                """
-              }
-            }
-          } catch (ex) {
-            print "Error during oss test suite: ${testSuite}"
-            print ex.toString()
-          }
-        }
-      }
+  def cStage(name, Closure closure) {
+    this.parentStage.ctx.print "Stage start: ${name}"
+    def stage = new CStage(name, this.parentStage.fullName, this.parentStage.ctx)
+    this.parentStage.addStage(stage)
+    closure.resolveStrategy = Closure.DELEGATE_FIRST
+    closure.delegate = new StageContext(stage)
+    try {
+      closure()
+    } finally {
+      stage.setEnd()
+      def duration = groovy.time.TimeCategory.minus(stage.end, stage.start)
+      this.parentStage.ctx.print "Stage end: ${stage.fullName} (${duration})"
     }
   }
+
+  StageContext(parentStage) {
+    this.parentStage = parentStage
+  }
 }
 
-def xpackCiGroupRunner = { primaryConfigPaths, additionalScript='' ->
-  return {
-    def configPaths = primaryConfigPaths + (xpackSuites.keySet().findAll { it != "test/functional/config.js" })
-    def lastConfigPath = null
+def rootStage(ctx, closure) {
+  def stage = new CStage('root', '', ctx)
+  closure.resolveStrategy = Closure.DELEGATE_FIRST
+  closure.delegate = new StageContext(stage)
+  closure()
+  stage.setEnd()
 
-    cStage("xpack-testRunner") {
-      // TODO need to move 'Ensuring all functional tests are in a ciGroup' to before the build
+  return stage
+}
 
-      sleep 840
+def printStages(stage, prev = '') {
+  // def stageString = (prev ? "${prev}." : "") + stage.name
+  // def stageString = "${prev}[${stage.name}]"
+  def stageString = stage.fullName
+  def duration = groovy.time.TimeCategory.minus(stage.end, stage.start)
+  print "${stageString} (${duration})"
+  stage.stages.each { printStages(it, stageString) }
+}
 
-      waitTil { defaultKibanaBuildComplete }
+def root = rootStage(this) {
+  def ossCiGroupRunner = { additionalScript='' ->
+    return {
+      if (!RUN_OSS) { return }
 
-      node('linux && immutable && tests') {
-        skipDefaultCheckout()
+      cStage("oss-testRunner") {
+        sleep 360
 
-        env.HOME = env.JENKINS_HOME
+        waitTil { ossKibanaBuildComplete }
+        // TODO need to move functionalTests:ensureAllTestsInCiGroup to before the build
+        node('linux && immutable && tests') {
+          skipDefaultCheckout()
 
-        sleep 150
+          env.HOME = env.JENKINS_HOME
 
-        waitTil { defaultKibanaBuildUploaded }
+          sleep 150
 
-        cStage('Download archive') {
-          step([
-            $class: 'DownloadStep',
-            credentialsId: 'kibana-ci-gcs-plugin',
-            bucketUri: "gs://kibana-pipeline-testing/workspaces/latest/${defaultWorkspaceArchiveFilename}",
-            localDirectory: env.WORKSPACE
-          ])
-        }
+          waitTil { ossKibanaBuildUploaded }
 
-        cStage('Extract archive') {
-          bash "tar -xzf workspaces/latest/${defaultWorkspaceArchiveFilename}"
-          bash 'rm -rf /var/lib/jenkins/.kibana/node && mv var/lib/jenkins/.kibana/node /var/lib/jenkins/.kibana/'
-        }
+          cStage('Download archive') {
+            step([
+              $class: 'DownloadStep',
+              credentialsId: 'kibana-ci-gcs-plugin',
+              bucketUri: "gs://kibana-pipeline-testing/workspaces/latest/${ossWorkspaceArchiveFilename}",
+              localDirectory: env.WORKSPACE
+            ])
+          }
 
-        withEnv """
-          set -e
-          export TEST_BROWSER_HEADLESS=1
+          cStage('Extract archive') {
+            bash "tar -xzf workspaces/latest/${ossWorkspaceArchiveFilename}"
+            bash 'rm -rf /var/lib/jenkins/.kibana/node && mv var/lib/jenkins/.kibana/node /var/lib/jenkins/.kibana/'
+          }
 
-          # TODO test in ciGroup verification replacement?
+          withEnv """
+            set -e
+            export TEST_BROWSER_HEADLESS=1
 
-          echo " -> extracting default Kibana distributable for use in functional tests"
-          cd "\$KIBANA_DIR"
-          linuxBuild="\$(find "\$KIBANA_DIR/target" -name 'kibana-*-linux-x86_64.tar.gz')"
-          installDir="\$PARENT_DIR/install/kibana"
-          mkdir -p "\$installDir"
-          tar -xzf "\$linuxBuild" -C "\$installDir" --strip=1
-        """
+            echo " -> extracting default Kibana distributable for use in functional tests"
+            cd "\$KIBANA_DIR"
+            linuxBuild="\$(find "\$KIBANA_DIR/target" -name 'kibana-*-linux-x86_64.tar.gz')"
+            installDir="\$PARENT_DIR/install/kibana"
+            mkdir -p "\$installDir"
+            tar -xzf "\$linuxBuild" -C "\$installDir" --strip=1
 
-        configPaths.each { configPath ->
-          while(!xpackSuites[configPath].isEmpty()) {
-            def testSuites = [xpackSuites[configPath].pop()].flatten()
+            nohup yarn test:ui:server --kibana-install-dir "\$installDir" > test-server-output.log &
+          """
 
-            if (configPath != lastConfigPath) {
-              lastConfigPath = configPath
+          sleep 60 // TODO
 
-              withEnv """
-                cd "\$XPACK_DIR"
-
-                rm -f test-server-output.log
-                installDir="\$PARENT_DIR/install/kibana"
-                if [ -f runner.pid ]; then kill \$(cat runner.pid); sleep 5; fi
-                nohup node scripts/functional_tests_server --config '${configPath}' --kibana-install-dir "\$installDir" > test-server-output.log & echo \$! > runner.pid
-              """
-
-              sleep 10 // TODO
-
-              sh 'cat x-pack/test-server-output.log'
-
-              // TODO
-              waitTil {
-                // TODO also check for process still running
-                return sh (
-                  script: 'grep "Elasticsearch and Kibana are ready" x-pack/test-server-output.log',
-                  returnStatus: true
-                ) == 0
-              }
-
-              sh 'cat x-pack/test-server-output.log'
-            }
+          while(!ossTestSuites.isEmpty()) {
+            def testSuite = ossTestSuites.pop()
 
             try {
-              cStage(testSuites.join(", ")) {
+              cStage("oss-ciGroup-${testSuite}") {
                 withTestReporter {
-                  def tagArgs = testSuites.collect { "--include-tag '${it}'" }.join(" ")
-
                   withEnv """
                     set -e
+                    export CI_GROUP=${testSuite}
                     export TEST_BROWSER_HEADLESS=1
 
-                    echo " -> Running functional and api tests"
-                    cd "\$XPACK_DIR"
+                    cd "\$KIBANA_DIR"
 
-                    checks-reporter-with-killswitch "X-Pack Chrome Functional tests / Group ${testSuites.join(", ")}" \
-                      node ../scripts/functional_test_runner \
-                        --debug --bail \
-                        --config '${configPath}' \
-                        ${tagArgs}
-
-                    echo ""
-                    echo ""
+                    checks-reporter-with-killswitch "Functional tests / Group ${testSuite}" \
+                      node scripts/functional_test_runner \
+                        --include-tag '${testSuite}' \
+                        # --config test/functional/config.js \
+                        # --config test/functional/config.firefox.js \
+                        --bail --debug \
+                        --kibana-install-dir "\$installDir"
 
                     ${additionalScript ?: ''}
                   """
                 }
               }
             } catch (ex) {
-              print "Error during xpack test suite: ${testSuite}"
+              print "Error during oss test suite: ${testSuite}"
               print ex.toString()
-
-              failedTests << [config: configPath, suite: testSuite, error: ex]
             }
           }
         }
       }
     }
   }
-}
 
-def buildOssKibana = {
-  withBootstrappedWorker {
-    stage('Build OSS Kibana') {
+  def xpackCiGroupRunner = { primaryConfigPaths, additionalScript='' ->
+    return {
+      if (!RUN_DEFAULT) { return }
+
+      def configPaths = primaryConfigPaths + (xpackSuites.keySet().findAll { it != "test/functional/config.js" })
+      def lastConfigPath = null
+
+      cStage("xpack-testRunner ${primaryConfigPaths}") {
+        // TODO need to move 'Ensuring all functional tests are in a ciGroup' to before the build
+
+        if (!defaultKibanaBuildComplete) {
+          sleep 840
+          waitTil { defaultKibanaBuildComplete }
+        }
+
+        node('linux && immutable && tests') {
+          skipDefaultCheckout()
+
+          env.HOME = env.JENKINS_HOME
+
+          if (!defaultKibanaBuildUploaded) {
+            sleep 150
+            waitTil { defaultKibanaBuildUploaded }
+          }
+
+          cStage('Download archive') {
+            step([
+              $class: 'DownloadStep',
+              credentialsId: 'kibana-ci-gcs-plugin',
+              bucketUri: "gs://kibana-pipeline-testing/workspaces/latest/${defaultWorkspaceArchiveFilename}",
+              localDirectory: env.WORKSPACE
+            ])
+          }
+
+          cStage('Extract archive') {
+            bash "tar -xzf workspaces/latest/${defaultWorkspaceArchiveFilename}"
+            bash 'rm -rf /var/lib/jenkins/.kibana/node && mv var/lib/jenkins/.kibana/node /var/lib/jenkins/.kibana/'
+          }
+
+          cStage('Extract Kibana') {
+            withEnv """
+              set -e
+              export TEST_BROWSER_HEADLESS=1
+
+              # TODO test in ciGroup verification replacement?
+
+              echo " -> extracting default Kibana distributable for use in functional tests"
+              cd "\$KIBANA_DIR"
+              linuxBuild="\$(find "\$KIBANA_DIR/target" -name 'kibana-*-linux-x86_64.tar.gz')"
+              installDir="\$PARENT_DIR/install/kibana"
+              mkdir -p "\$installDir"
+              tar -xzf "\$linuxBuild" -C "\$installDir" --strip=1
+            """
+          }
+
+          configPaths.each { configPath ->
+            while(!xpackSuites[configPath].isEmpty()) {
+              def testSuites = [xpackSuites[configPath].pop()].flatten()
+
+              if (configPath != lastConfigPath) {
+                lastConfigPath = configPath
+
+                cStage('Launch Kibana/ES') {
+                  withEnv """
+                    cd "\$XPACK_DIR"
+
+                    rm -f test-server-output.log
+                    installDir="\$PARENT_DIR/install/kibana"
+                    if [ -f runner.pid ]; then kill \$(cat runner.pid); sleep 5; fi
+                    nohup node scripts/functional_tests_server --config '${configPath}' --kibana-install-dir "\$installDir" > test-server-output.log & echo \$! > runner.pid
+                  """
+
+                  sleep 10 // TODO
+
+                  sh 'cat x-pack/test-server-output.log'
+
+                  // TODO
+                  waitTil {
+                    // TODO also check for process still running
+                    return sh (
+                      script: 'grep "Elasticsearch and Kibana are ready" x-pack/test-server-output.log',
+                      returnStatus: true
+                    ) == 0
+                  }
+
+                  sh 'cat x-pack/test-server-output.log'
+                }
+              }
+
+              try {
+                cStage(testSuites.join(", ")) {
+                  withTestReporter {
+                    def tagArgs = testSuites.collect { "--include-tag '${it}'" }.join(" ")
+
+                    withEnv """
+                      set -e
+                      export TEST_BROWSER_HEADLESS=1
+
+                      echo " -> Running functional and api tests"
+                      cd "\$XPACK_DIR"
+
+                      checks-reporter-with-killswitch "X-Pack Chrome Functional tests / Group ${testSuites.join(", ")}" \
+                        node ../scripts/functional_test_runner \
+                          --debug --bail \
+                          --config '${configPath}' \
+                          ${tagArgs}
+
+                      echo ""
+                      echo ""
+
+                      ${additionalScript ?: ''}
+                    """
+                  }
+                }
+              } catch (ex) {
+                print "Error during xpack test suite: ${testSuite}"
+                print ex.toString()
+
+                failedTests << [config: configPath, suite: testSuite, error: ex]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  def buildOssKibana = {
+    if (!RUN_OSS || ossKibanaBuildComplete) { return }
+
+    withBootstrappedWorker {
       cStage('Build OSS Kibana') {
-        withEnv 'node scripts/build --debug --oss'
+        cStage('Build OSS Kibana') {
+          withEnv 'node scripts/build --debug --oss'
+        }
+
+        ossKibanaBuildComplete = true
+
+        cStage('Archive workspace') {
+          bash "touch ${ossWorkspaceArchiveFilename} && tar -czf ${ossWorkspaceArchiveFilename} --exclude=${ossWorkspaceArchiveFilename} . /var/lib/jenkins/.kibana/node"
+        }
+
+        cStage('Upload workspace') {
+          step([
+            $class: 'ClassicUploadStep',
+            credentialsId: 'kibana-ci-gcs-plugin',
+            bucket: "gs://kibana-pipeline-testing/workspaces/latest",
+            pattern: ossWorkspaceArchiveFilename,
+          ])
+        }
+
+        ossKibanaBuildUploaded = true
       }
-
-      ossKibanaBuildComplete = true
-
-      cStage('Archive workspace') {
-        bash "touch ${ossWorkspaceArchiveFilename} && tar -czf ${ossWorkspaceArchiveFilename} --exclude=${ossWorkspaceArchiveFilename} . /var/lib/jenkins/.kibana/node"
-      }
-
-      cStage('Upload workspace') {
-        step([
-          $class: 'ClassicUploadStep',
-          credentialsId: 'kibana-ci-gcs-plugin',
-          bucket: "gs://kibana-pipeline-testing/workspaces/latest",
-          pattern: ossWorkspaceArchiveFilename,
-        ])
-      }
-
-      ossKibanaBuildUploaded = true
     }
   }
-}
 
-def buildDefaultKibana = {
-  withBootstrappedWorker {
-    stage('Build Default Kibana') {
+  def buildDefaultKibana = {
+    if (!RUN_DEFAULT || defaultKibanaBuildComplete) { return }
+
+    withBootstrappedWorker {
       cStage('Build Default Kibana') {
-        withEnv 'node scripts/build --debug --no-oss'
+        cStage('Build Default Kibana') {
+          withEnv 'node scripts/build --debug --no-oss'
+        }
+
+        defaultKibanaBuildComplete = true
+
+        cStage('Archive workspace') {
+          bash "touch ${defaultWorkspaceArchiveFilename} && tar -czf ${defaultWorkspaceArchiveFilename} --exclude=${defaultWorkspaceArchiveFilename} . /var/lib/jenkins/.kibana/node"
+        }
+
+        cStage('Upload workspace') {
+          step([
+            $class: 'ClassicUploadStep',
+            credentialsId: 'kibana-ci-gcs-plugin',
+            bucket: "gs://kibana-pipeline-testing/workspaces/latest",
+            pattern: defaultWorkspaceArchiveFilename,
+          ])
+        }
+
+        defaultKibanaBuildUploaded = true
       }
+    }
+  }
+  timestamps {
+    ansiColor('xterm') {
+      try {
+        parallel([
+          'Status': {
+            // Update status of job, etc in a loop?
+          },
+          'Build OSS Kibana': { buildOssKibana() },
+          'oss-testRunner1': ossCiGroupRunner(),
+          'oss-testRunner2': ossCiGroupRunner(),
+          'oss-testRunner3': ossCiGroupRunner(),
+          'oss-testRunner4': ossCiGroupRunner(),
+          'oss-testRunner5': ossCiGroupRunner(),
+          'oss-testRunner6': ossCiGroupRunner(),
+          'oss-testRunner7': ossCiGroupRunner(),
+          'oss-testRunner8': ossCiGroupRunner(),
+          'oss-testRunner9': ossCiGroupRunner(),
+          'oss-testRunner10': ossCiGroupRunner(),
+          'oss-testRunner11': ossCiGroupRunner(),
+          'oss-testRunner12': ossCiGroupRunner(),
+          'oss-testRunner13': ossCiGroupRunner(),
+          'oss-testRunner14': ossCiGroupRunner(),
+          'oss-testRunner15': ossCiGroupRunner(),
+          'oss-testRunner16': ossCiGroupRunner(),
+          'oss-testRunner17': ossCiGroupRunner(),
+          'oss-testRunner18': ossCiGroupRunner(),
+          'oss-testRunner19': ossCiGroupRunner(),
+          'oss-testRunner20': ossCiGroupRunner(),
+          'Build Default Kibana': { buildDefaultKibana() },
+          'xpack-testRunner1': xpackCiGroupRunner(["test/reporting/configs/chromium_api.js"]),
+          'xpack-testRunner2': xpackCiGroupRunner(["test/reporting/configs/chromium_functional.js"]),
+          'xpack-testRunner4': xpackCiGroupRunner(["test/functional/config.js"]),
+          'xpack-testRunner4-2': xpackCiGroupRunner(["test/functional/config.js"]),
+          'xpack-testRunner4-3': xpackCiGroupRunner(["test/functional/config.js"]),
+          'xpack-testRunner4-4': xpackCiGroupRunner(["test/functional/config.js"]),
+          'xpack-testRunner4-5': xpackCiGroupRunner(["test/functional/config.js"]),
+          'xpack-testRunner4-6': xpackCiGroupRunner(["test/functional/config.js"]),
+          'xpack-testRunner4-7': xpackCiGroupRunner(["test/functional/config.js"]),
+          'xpack-testRunner4-8': xpackCiGroupRunner(["test/functional/config.js"]),
+          'xpack-testRunner4-9': xpackCiGroupRunner(["test/functional/config.js"]),
+          'xpack-testRunner4-10': xpackCiGroupRunner(["test/functional/config.js"]),
+          'xpack-testRunner5': xpackCiGroupRunner([
+            "test/api_integration/config_security_basic.js",
+            "test/plugin_api_integration/config.js",
+            "test/kerberos_api_integration/config.ts",
+            "test/saml_api_integration/config.js",
+            "test/token_api_integration/config.js",
+          ]),
+          'xpack-testRunner5-2': xpackCiGroupRunner([
+            "test/oidc_api_integration/config.ts",
+            "test/oidc_api_integration/implicit_flow.config.ts",
+            "test/spaces_api_integration/spaces_only/config.ts",
+            "test/ui_capabilities/security_only/config.ts",
+            "test/upgrade_assistant_integration/config.js",
+          ]),
+          'xpack-testRunner6': xpackCiGroupRunner(["test/api_integration/config.js"]),
+          'xpack-testRunner6-2': xpackCiGroupRunner(["test/api_integration/config.js"]), 
+          'xpack-testRunner6-3': xpackCiGroupRunner(["test/api_integration/config.js"]),
+          'xpack-testRunner7': xpackCiGroupRunner(["test/alerting_api_integration/config_security_enabled.js"]),
+          'xpack-testRunner17': xpackCiGroupRunner(["test/spaces_api_integration/security_and_spaces/config_trial.ts"]),
+          'xpack-testRunner19': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]),
+          'xpack-testRunner19-2': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]),
+          'xpack-testRunner20': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_basic.ts"]),
+          'xpack-testRunner22': xpackCiGroupRunner(["test/saved_object_api_integration/security_only/config_basic.ts"]),
+          // 'oss-intake': {
+          //   withBootstrappedWorker {
+          //     stage('OSS Intake') {
+          //       withTestReporter {
+          //         withEnv 'export TEST_BROWSER_HEADLESS=1; "$(FORCE_COLOR=0 yarn bin)/grunt" jenkins:unit --dev'
+          //       }
+          //     }
+          //   }
+          // },
+          // 'default-intake': {
+          //   withBootstrappedWorker {
+          //     stage('Default Intake') {
+          //       withTestReporter {
+          //         withEnv '''
+          //           export TEST_BROWSER_HEADLESS=1
 
-      defaultKibanaBuildComplete = true
+          //           echo " -> Running mocha tests"
+          //           cd "$XPACK_DIR"
+          //           checks-reporter-with-killswitch "X-Pack Mocha" yarn test
+          //           echo ""
+          //           echo ""
 
-      cStage('Archive workspace') {
-        bash "touch ${defaultWorkspaceArchiveFilename} && tar -czf ${defaultWorkspaceArchiveFilename} --exclude=${defaultWorkspaceArchiveFilename} . /var/lib/jenkins/.kibana/node"
-      }
+          //           echo " -> Running jest tests"
+          //           cd "$XPACK_DIR"
+          //           checks-reporter-with-killswitch "X-Pack Jest" node scripts/jest --ci --verbose
+          //           echo ""
+          //           echo ""
 
-      cStage('Upload workspace') {
-        step([
-          $class: 'ClassicUploadStep',
-          credentialsId: 'kibana-ci-gcs-plugin',
-          bucket: "gs://kibana-pipeline-testing/workspaces/latest",
-          pattern: defaultWorkspaceArchiveFilename,
+          //           echo " -> Running SIEM cyclic dependency test"
+          //           cd "$XPACK_DIR"
+          //           checks-reporter-with-killswitch "X-Pack SIEM cyclic dependency test" node legacy/plugins/siem/scripts/check_circular_deps
+          //           echo ""
+          //           echo ""
+
+          //           echo " -> Running jest contracts tests"
+          //           cd "$XPACK_DIR"
+          //           SLAPSHOT_ONLINE=true CONTRACT_ONLINE=true node scripts/jest_contract.js --ci --verbose
+          //           echo ""
+          //           echo ""
+          //         '''
+          //       }
+          //     }
+          //   }
+          // },
         ])
+      } finally {
+        print failedTests
       }
-
-      defaultKibanaBuildUploaded = true
     }
   }
 }
 
-timestamps {
-  ansiColor('xterm') {
-    try {
-      parallel([
-        'Status': {
-          // Update status of job, etc in a loop?
-        },
-        'Build OSS Kibana': { buildOssKibana() },
-        'oss-testRunner1': ossCiGroupRunner(),
-        'oss-testRunner2': ossCiGroupRunner(),
-        'oss-testRunner3': ossCiGroupRunner(),
-        'oss-testRunner4': ossCiGroupRunner(),
-        'oss-testRunner5': ossCiGroupRunner(),
-        'oss-testRunner6': ossCiGroupRunner(),
-        'oss-testRunner7': ossCiGroupRunner(),
-        'oss-testRunner8': ossCiGroupRunner(),
-        'oss-testRunner9': ossCiGroupRunner(),
-        'oss-testRunner10': ossCiGroupRunner(),
-        'oss-testRunner11': ossCiGroupRunner(),
-        'oss-testRunner12': ossCiGroupRunner(),
-        'oss-testRunner13': ossCiGroupRunner(),
-        'oss-testRunner14': ossCiGroupRunner(),
-        'oss-testRunner15': ossCiGroupRunner(),
-        'oss-testRunner16': ossCiGroupRunner(),
-        'oss-testRunner17': ossCiGroupRunner(),
-        'oss-testRunner18': ossCiGroupRunner(),
-        'oss-testRunner19': ossCiGroupRunner(),
-        'oss-testRunner20': ossCiGroupRunner(),
-        'Build Default Kibana': { buildDefaultKibana() },
-        'xpack-testRunner1': xpackCiGroupRunner(["test/reporting/configs/chromium_api.js"]),
-        'xpack-testRunner2': xpackCiGroupRunner(["test/reporting/configs/chromium_functional.js"]),
-        'xpack-testRunner4': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-2': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-3': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-4': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-5': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-6': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-7': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-8': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-9': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner4-10': xpackCiGroupRunner(["test/functional/config.js"]),
-        'xpack-testRunner5': xpackCiGroupRunner([
-          "test/api_integration/config_security_basic.js",
-          "test/plugin_api_integration/config.js",
-          "test/kerberos_api_integration/config.ts",
-          "test/saml_api_integration/config.js",
-          "test/token_api_integration/config.js",
-        ]),
-        'xpack-testRunner5-2': xpackCiGroupRunner([
-          "test/oidc_api_integration/config.ts",
-          "test/oidc_api_integration/implicit_flow.config.ts",
-          "test/spaces_api_integration/spaces_only/config.ts",
-          "test/ui_capabilities/security_only/config.ts",
-          "test/upgrade_assistant_integration/config.js",
-        ]),
-        'xpack-testRunner6': xpackCiGroupRunner(["test/api_integration/config.js"]),
-        'xpack-testRunner6-2': xpackCiGroupRunner(["test/api_integration/config.js"]), 
-        'xpack-testRunner6-3': xpackCiGroupRunner(["test/api_integration/config.js"]),
-        'xpack-testRunner7': xpackCiGroupRunner(["test/alerting_api_integration/config_security_enabled.js"]),
-        'xpack-testRunner17': xpackCiGroupRunner(["test/spaces_api_integration/security_and_spaces/config_trial.ts"]),
-        'xpack-testRunner19': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]),
-        'xpack-testRunner19-2': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]),
-        'xpack-testRunner20': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_basic.ts"]) 
-        'xpack-testRunner22': xpackCiGroupRunner(["test/saved_object_api_integration/security_only/config_basic.ts"]),
-        // 'oss-intake': {
-        //   withBootstrappedWorker {
-        //     stage('OSS Intake') {
-        //       withTestReporter {
-        //         withEnv 'export TEST_BROWSER_HEADLESS=1; "$(FORCE_COLOR=0 yarn bin)/grunt" jenkins:unit --dev'
-        //       }
-        //     }
-        //   }
-        // },
-        // 'default-intake': {
-        //   withBootstrappedWorker {
-        //     stage('Default Intake') {
-        //       withTestReporter {
-        //         withEnv '''
-        //           export TEST_BROWSER_HEADLESS=1
-
-        //           echo " -> Running mocha tests"
-        //           cd "$XPACK_DIR"
-        //           checks-reporter-with-killswitch "X-Pack Mocha" yarn test
-        //           echo ""
-        //           echo ""
-
-        //           echo " -> Running jest tests"
-        //           cd "$XPACK_DIR"
-        //           checks-reporter-with-killswitch "X-Pack Jest" node scripts/jest --ci --verbose
-        //           echo ""
-        //           echo ""
-
-        //           echo " -> Running SIEM cyclic dependency test"
-        //           cd "$XPACK_DIR"
-        //           checks-reporter-with-killswitch "X-Pack SIEM cyclic dependency test" node legacy/plugins/siem/scripts/check_circular_deps
-        //           echo ""
-        //           echo ""
-
-        //           echo " -> Running jest contracts tests"
-        //           cd "$XPACK_DIR"
-        //           SLAPSHOT_ONLINE=true CONTRACT_ONLINE=true node scripts/jest_contract.js --ci --verbose
-        //           echo ""
-        //           echo ""
-        //         '''
-        //       }
-        //     }
-        //   }
-        // },
-      ])
-    } finally {
-      print failedTests
-    }
-  }
-}
+printStages(root)
 
 def withBootstrappedWorker(closure) {
   node('linux && immutable && builds') {
