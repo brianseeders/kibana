@@ -1,13 +1,4 @@
 #!/bin/groovy
-// TODO is there a way to make this actually work with the Jenkins sandbox?
-
-def getJobs() {
-  def jobs = [:]
-  (1..12).each { jobs["oss-ciGroup${it}"] = ossCiGroupRunner(it) }
-  (1..10).each { jobs["xpack-ciGroup${it}"] = xpackCiGroupRunner(it) }
-
-  return jobs
-}
 
 def failedTests = []
 
@@ -15,14 +6,14 @@ def workspaceArchiveFilename = 'workspace.archive.tar.gz'
 def ossWorkspaceArchiveFilename = 'workspace-oss.archive.tar.gz'
 def defaultWorkspaceArchiveFilename = 'workspace-default.archive.tar.gz'
 
-def RUN_OSS = false
+def RUN_OSS = true
 def RUN_DEFAULT = true
 
-def ossKibanaBuildComplete = true
-def ossKibanaBuildUploaded = true
+def ossKibanaBuildComplete = false
+def ossKibanaBuildUploaded = false
 
-def defaultKibanaBuildComplete = true
-def defaultKibanaBuildUploaded = true
+def defaultKibanaBuildComplete = false
+def defaultKibanaBuildUploaded = false
 
 def waitTil(conditionClosure) {
   for(def i = 0; i < 50000 && !conditionClosure(); i++) {
@@ -360,18 +351,18 @@ def xpackSuites = [
      "spaces_api_integration.spaces_only.apis.update"]
   ],
   "test/spaces_api_integration/security_and_spaces/config_trial.ts": [
-    ["spaces_api_integration.security_and_spaces.apis.create",
+    "spaces_api_integration.security_and_spaces.apis.create",
      "spaces_api_integration.security_and_spaces.apis.delete",
      "spaces_api_integration.security_and_spaces.apis.get_all",
      "spaces_api_integration.security_and_spaces.apis.select",
-     "spaces_api_integration.security_and_spaces.apis.update"]
+     "spaces_api_integration.security_and_spaces.apis.update",
   ],
   "test/spaces_api_integration/security_and_spaces/config_basic.ts": [
-    ["spaces_api_integration.security_and_spaces.apis.create",
+    "spaces_api_integration.security_and_spaces.apis.create",
      "spaces_api_integration.security_and_spaces.apis.delete",
      "spaces_api_integration.security_and_spaces.apis.get_all",
      "spaces_api_integration.security_and_spaces.apis.select",
-     "spaces_api_integration.security_and_spaces.apis.update"]
+     "spaces_api_integration.security_and_spaces.apis.update",
   ],
   "test/saved_object_api_integration/security_and_spaces/config_trial.ts": [
     ["saved_object_api_integration.security_and_spaces.apis.bulk_create",
@@ -513,8 +504,6 @@ def rootStage(ctx, closure) {
 }
 
 def printStages(stage, prev = '') {
-  // def stageString = (prev ? "${prev}." : "") + stage.name
-  // def stageString = "${prev}[${stage.name}]"
   def stageString = stage.fullName
   def duration = groovy.time.TimeCategory.minus(stage.end, stage.start)
   print "${stageString} (${duration})"
@@ -527,18 +516,22 @@ def root = rootStage(this) {
       if (!RUN_OSS) { return }
 
       cStage("oss-testRunner") {
-        sleep 360
 
-        waitTil { ossKibanaBuildComplete }
+        if (!ossKibanaBuildComplete) {
+          sleep 360
+          waitTil { ossKibanaBuildComplete }
+        }
+
         // TODO need to move functionalTests:ensureAllTestsInCiGroup to before the build
-        node('linux && immutable && tests') {
+        node('linux && immutable && tests-large') {
           skipDefaultCheckout()
 
           env.HOME = env.JENKINS_HOME
 
-          sleep 150
-
-          waitTil { ossKibanaBuildUploaded }
+          if (!ossKibanaBuildUploaded) {
+            sleep 150
+            waitTil { ossKibanaBuildUploaded }
+          }
 
           cStage('Download archive') {
             step([
@@ -564,42 +557,96 @@ def root = rootStage(this) {
             installDir="\$PARENT_DIR/install/kibana"
             mkdir -p "\$installDir"
             tar -xzf "\$linuxBuild" -C "\$installDir" --strip=1
-
-            nohup yarn test:ui:server --kibana-install-dir "\$installDir" > test-server-output.log &
           """
 
-          sleep 60 // TODO
+          def nextWorker = 1
 
-          while(!ossTestSuites.isEmpty()) {
-            def testSuite = ossTestSuites.pop()
+          def startTesting = {
+            def workerNumber = nextWorker
+            def lastConfigPath = null
 
-            try {
-              cStage("oss-ciGroup-${testSuite}") {
-                withTestReporter {
-                  withEnv """
-                    set -e
-                    export CI_GROUP=${testSuite}
-                    export TEST_BROWSER_HEADLESS=1
+            nextWorker++
 
-                    cd "\$KIBANA_DIR"
+            cStage('Copy Kibana') {
+              withEnv """
+                installDir="\$PARENT_DIR/install/kibana"
+                destDir=\${installDir}-${workerNumber}
+                cp -R "\$installDir" "\$destDir"
+              """
+            }
 
-                    checks-reporter-with-killswitch "Functional tests / Group ${testSuite}" \
-                      node scripts/functional_test_runner \
-                        --include-tag '${testSuite}' \
-                        # --config test/functional/config.js \
-                        # --config test/functional/config.firefox.js \
-                        --bail --debug \
-                        --kibana-install-dir "\$installDir"
+            def kibanaPort = "61${workerNumber}1"
+            def esPort = "61${workerNumber}2"
 
-                    ${additionalScript ?: ''}
-                  """
+            def portString = "TEST_KIBANA_URL=http://elastic:changeme@localhost:${kibanaPort} TEST_ES_URL=http://elastic:changeme@localhost:${esPort}"
+            
+            // nohup yarn test:ui:server --kibana-install-dir "\$installDir" > test-server-output.log &
+
+            cStage('Launch Kibana/ES') {
+              withEnv """
+                cd "\$KIBANA_DIR"
+
+                rm -f test-server-output-${workerNumber}.log
+                installDir="\$PARENT_DIR/install/kibana-${workerNumber}"
+                if [ -f runner-${workerNumber}.pid ]; then kill \$(cat runner-${workerNumber}.pid); sleep 5; fi
+                ${portString} nohup yarn test:ui:server --kibana-install-dir "\$installDir" > test-server-output-${workerNumber}.log & echo \$! > runner-${workerNumber}.pid
+              """
+            }
+            
+            sleep 10 // TODO
+            waitTil {
+              // TODO also check for process still running
+              return sh (
+                script: "grep 'Elasticsearch and Kibana are ready' test-server-output-${workerNumber}.log",
+                returnStatus: true
+              ) == 0
+            }
+
+            sh "cat test-server-output-${workerNumber}.log"
+
+            while(!ossTestSuites.isEmpty()) {
+              def testSuite = ossTestSuites.pop()
+
+              try {
+                cStage("oss-ciGroup-${testSuite}") {
+                  withTestReporter {
+                    withEnv """
+                      set -e
+                      export CI_GROUP=${testSuite}
+                      export TEST_BROWSER_HEADLESS=1
+
+                      cd "\$KIBANA_DIR"
+
+                      ${portString} checks-reporter-with-killswitch "Functional tests / Group ${testSuite}" \
+                        node scripts/functional_test_runner \
+                          --include-tag '${testSuite}' \
+                          # --config test/functional/config.js \
+                          # --config test/functional/config.firefox.js \
+                          --bail --debug \
+                          --kibana-install-dir "\$installDir"
+
+                      ${additionalScript ?: ''}
+                    """
+                  }
                 }
+              } catch (ex) {
+                print "Error during oss test suite: ${testSuite}"
+                print ex.toString()
               }
-            } catch (ex) {
-              print "Error during oss test suite: ${testSuite}"
-              print ex.toString()
             }
           }
+
+          parallel([
+            worker1: { startTesting() },
+            worker2: { startTesting() },
+            worker3: { startTesting() },
+            worker4: { startTesting() },
+            worker5: { startTesting() },
+            worker6: { startTesting() },
+            worker7: { startTesting() },
+            worker8: { startTesting() },
+          ])
+          
         }
       }
     }
@@ -619,7 +666,7 @@ def root = rootStage(this) {
           waitTil { defaultKibanaBuildComplete }
         }
 
-        node('linux && immutable && tests') {
+        node('linux && immutable && tests-large') {
           skipDefaultCheckout()
 
           env.HOME = env.JENKINS_HOME
@@ -752,8 +799,79 @@ def root = rootStage(this) {
           parallel([
             worker1: { startTesting() },
             worker2: { startTesting() },
+            worker3: { startTesting() },
+            worker4: { startTesting() },
+            worker5: { startTesting() },
+            worker6: { startTesting() },
+            worker7: { startTesting() },
+            worker8: { startTesting() },
           ])
         }
+      }
+    }
+  }
+
+  def withBootstrappedWorker = { closure ->
+    node('linux && immutable && builds') {
+      skipDefaultCheckout()
+
+      env.HOME = env.JENKINS_HOME
+
+      parallel([
+        checkout: {
+          cStage('Checkout') {
+            def scmVars = checkout scm
+            env.GIT_BRANCH = scmVars.GIT_BRANCH
+          }
+        },
+        cache: {
+          cStage('Bootstrap cache') {
+            bash '''
+              targetBranch="master"
+              bootstrapCache="$HOME/.kibana/bootstrap_cache/$targetBranch.tar"
+
+              ###
+              ### Extract the bootstrap cache that we create in the packer_cache.sh script
+              ###
+              if [ -f "$bootstrapCache" ]; then
+                mkdir -p ./bootstrap-cache
+                echo "extracting bootstrap_cache from $bootstrapCache";
+                tar -xf "$bootstrapCache" -C ./bootstrap-cache;
+              fi
+            '''
+          }
+          // cStage('Download archive') {
+          //   step([
+          //     $class: 'DownloadStep',
+          //     credentialsId: 'kibana-ci-gcs-plugin',
+          //     bucketUri: "gs://kibana-pipeline-testing/workspaces/latest/${workspaceArchiveFilename}",
+          //     localDirectory: env.WORKSPACE
+          //   ])
+          // }
+        }
+      ])
+
+      dir('./kibana') {
+        // cStage('Extract archive') {
+        //   bash "tar -xzf ../workspaces/latest/${workspaceArchiveFilename}"
+        //   bash 'rm -rf /var/lib/jenkins/.kibana/node && mv var/lib/jenkins/.kibana/node /var/lib/jenkins/.kibana/'
+        //   bash 'git reset --hard' # TODO account for .git itself
+        // }
+
+        cStage('Move bootstrap-cache') {
+          bash 'cp -aTl ../bootstrap-cache/ ./'
+        }
+        
+        cStage('setup.sh') {
+          bash 'source src/dev/ci_setup/setup.sh'
+        }
+
+        cStage('Sibling ES') {
+          bash 'rm -rf ../elasticsearch'
+          bash 'source src/dev/ci_setup/setup_docker.sh; source src/dev/ci_setup/checkout_sibling_es.sh'
+        }
+
+        closure()
       }
     }
   }
@@ -815,6 +933,7 @@ def root = rootStage(this) {
       }
     }
   }
+
   timestamps {
     ansiColor('xterm') {
       try {
@@ -828,57 +947,32 @@ def root = rootStage(this) {
           'oss-testRunner3': ossCiGroupRunner(),
           'oss-testRunner4': ossCiGroupRunner(),
           'oss-testRunner5': ossCiGroupRunner(),
-          'oss-testRunner6': ossCiGroupRunner(),
-          'oss-testRunner7': ossCiGroupRunner(),
-          'oss-testRunner8': ossCiGroupRunner(),
-          'oss-testRunner9': ossCiGroupRunner(),
-          'oss-testRunner10': ossCiGroupRunner(),
-          'oss-testRunner11': ossCiGroupRunner(),
-          'oss-testRunner12': ossCiGroupRunner(),
-          'oss-testRunner13': ossCiGroupRunner(),
-          'oss-testRunner14': ossCiGroupRunner(),
-          'oss-testRunner15': ossCiGroupRunner(),
-          'oss-testRunner16': ossCiGroupRunner(),
-          'oss-testRunner17': ossCiGroupRunner(),
-          'oss-testRunner18': ossCiGroupRunner(),
-          'oss-testRunner19': ossCiGroupRunner(),
-          'oss-testRunner20': ossCiGroupRunner(),
           'Build Default Kibana': { buildDefaultKibana() },
-          // 'xpack-testRunner1': xpackCiGroupRunner(["test/reporting/configs/chromium_api.js"]),
-          // 'xpack-testRunner2': xpackCiGroupRunner(["test/reporting/configs/chromium_functional.js"]),
-          'xpack-testRunner4': xpackCiGroupRunner(["test/functional/config.js"]),
-          'xpack-testRunner4-2': xpackCiGroupRunner(["test/functional/config.js"]),
-          'xpack-testRunner4-3': xpackCiGroupRunner(["test/functional/config.js"]),
-          'xpack-testRunner4-4': xpackCiGroupRunner(["test/functional/config.js"]),
-          'xpack-testRunner4-5': xpackCiGroupRunner(["test/functional/config.js"]),
-          // 'xpack-testRunner4-6': xpackCiGroupRunner(["test/functional/config.js"]),
-          // 'xpack-testRunner4-7': xpackCiGroupRunner(["test/functional/config.js"]),
-          // 'xpack-testRunner4-8': xpackCiGroupRunner(["test/functional/config.js"]),
-          // 'xpack-testRunner4-9': xpackCiGroupRunner(["test/functional/config.js"]),
-          // 'xpack-testRunner4-10': xpackCiGroupRunner(["test/functional/config.js"]),
-          // 'xpack-testRunner5': xpackCiGroupRunner([
-          //   "test/api_integration/config_security_basic.js",
-          //   "test/plugin_api_integration/config.js",
-          //   "test/kerberos_api_integration/config.ts",
-          //   "test/saml_api_integration/config.js",
-          //   "test/token_api_integration/config.js",
-          // ]),
-          // 'xpack-testRunner5-2': xpackCiGroupRunner([
-          //   "test/oidc_api_integration/config.ts",
-          //   "test/oidc_api_integration/implicit_flow.config.ts",
-          //   "test/spaces_api_integration/spaces_only/config.ts",
-          //   "test/ui_capabilities/security_only/config.ts",
-          //   "test/upgrade_assistant_integration/config.js",
-          // ]),
-          // 'xpack-testRunner6': xpackCiGroupRunner(["test/api_integration/config.js"]),
-          // 'xpack-testRunner6-2': xpackCiGroupRunner(["test/api_integration/config.js"]), 
-          // 'xpack-testRunner6-3': xpackCiGroupRunner(["test/api_integration/config.js"]),
-          // 'xpack-testRunner7': xpackCiGroupRunner(["test/alerting_api_integration/config_security_enabled.js"]),
-          // 'xpack-testRunner17': xpackCiGroupRunner(["test/spaces_api_integration/security_and_spaces/config_trial.ts"]),
-          // 'xpack-testRunner19': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]),
-          // 'xpack-testRunner19-2': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]),
-          // 'xpack-testRunner20': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_basic.ts"]),
-          // 'xpack-testRunner22': xpackCiGroupRunner(["test/saved_object_api_integration/security_only/config_basic.ts"]),
+          'xpack-testRunner1': xpackCiGroupRunner(["test/reporting/configs/chromium_api.js", "test/reporting/configs/chromium_functional.js"]),
+          'xpack-testRunner2-1': xpackCiGroupRunner(["test/functional/config.js"]),
+          'xpack-testRunner2-2': xpackCiGroupRunner(["test/functional/config.js"]),
+          'xpack-testRunner2-3': xpackCiGroupRunner(["test/functional/config.js"]),
+          'xpack-testRunner3': xpackCiGroupRunner([
+            "test/api_integration/config_security_basic.js",
+            "test/plugin_api_integration/config.js",
+            "test/kerberos_api_integration/config.ts",
+            "test/saml_api_integration/config.js",
+            "test/token_api_integration/config.js",
+            "test/oidc_api_integration/config.ts",
+            "test/oidc_api_integration/implicit_flow.config.ts",
+            "test/spaces_api_integration/spaces_only/config.ts",
+            "test/ui_capabilities/security_only/config.ts",
+            "test/upgrade_assistant_integration/config.js",
+          ]),
+          'xpack-testRunner4': xpackCiGroupRunner([
+            "test/api_integration/config.js",
+            "test/alerting_api_integration/config_security_enabled.js",
+            "test/spaces_api_integration/security_and_spaces/config_trial.ts",
+            "test/saved_object_api_integration/security_and_spaces/config_trial.ts",
+            "test/saved_object_api_integration/security_and_spaces/config_trial.ts",
+            "test/saved_object_api_integration/security_and_spaces/config_basic.ts",
+            "test/saved_object_api_integration/security_only/config_basic.ts",
+          ]),
           // 'oss-intake': {
           //   withBootstrappedWorker {
           //     stage('OSS Intake') {
@@ -932,71 +1026,6 @@ def root = rootStage(this) {
 }
 
 printStages(root)
-
-def withBootstrappedWorker(closure) {
-  node('linux && immutable && builds') {
-    skipDefaultCheckout()
-
-    env.HOME = env.JENKINS_HOME
-
-    parallel([
-      checkout: {
-        cStage('Checkout') {
-          def scmVars = checkout scm
-          env.GIT_BRANCH = scmVars.GIT_BRANCH
-        }
-      },
-      cache: {
-        cStage('Bootstrap cache') {
-          bash '''
-            targetBranch="master"
-            bootstrapCache="$HOME/.kibana/bootstrap_cache/$targetBranch.tar"
-
-            ###
-            ### Extract the bootstrap cache that we create in the packer_cache.sh script
-            ###
-            if [ -f "$bootstrapCache" ]; then
-              mkdir -p ./bootstrap-cache
-              echo "extracting bootstrap_cache from $bootstrapCache";
-              tar -xf "$bootstrapCache" -C ./bootstrap-cache;
-            fi
-          '''
-        }
-        // cStage('Download archive') {
-        //   step([
-        //     $class: 'DownloadStep',
-        //     credentialsId: 'kibana-ci-gcs-plugin',
-        //     bucketUri: "gs://kibana-pipeline-testing/workspaces/latest/${workspaceArchiveFilename}",
-        //     localDirectory: env.WORKSPACE
-        //   ])
-        // }
-      }
-    ])
-
-    dir('./kibana') {
-      // cStage('Extract archive') {
-      //   bash "tar -xzf ../workspaces/latest/${workspaceArchiveFilename}"
-      //   bash 'rm -rf /var/lib/jenkins/.kibana/node && mv var/lib/jenkins/.kibana/node /var/lib/jenkins/.kibana/'
-      //   bash 'git reset --hard' # TODO account for .git itself
-      // }
-
-      cStage('Move bootstrap-cache') {
-        bash 'cp -aTl ../bootstrap-cache/ ./'
-      }
-      
-      cStage('setup.sh') {
-        bash 'source src/dev/ci_setup/setup.sh'
-      }
-
-      cStage('Sibling ES') {
-        bash 'rm -rf ../elasticsearch'
-        bash 'source src/dev/ci_setup/setup_docker.sh; source src/dev/ci_setup/checkout_sibling_es.sh'
-      }
-
-      closure()
-    }
-  }
-}
 
 def bash(script) {
   sh "#!/bin/bash -x\n${script}"
