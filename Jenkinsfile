@@ -610,7 +610,6 @@ def root = rootStage(this) {
       if (!RUN_DEFAULT) { return }
 
       def configPaths = primaryConfigPaths + (xpackSuites.keySet().findAll { it != "test/functional/config.js" })
-      def lastConfigPath = null
 
       cStage("xpack-testRunner ${primaryConfigPaths}") {
         // TODO need to move 'Ensuring all functional tests are in a ciGroup' to before the build
@@ -660,73 +659,100 @@ def root = rootStage(this) {
             """
           }
 
-          configPaths.each { configPath ->
-            while(!xpackSuites[configPath].isEmpty()) {
-              def testSuites = [xpackSuites[configPath].pop()].flatten()
+          def nextWorker = 1
 
-              if (configPath != lastConfigPath) {
-                lastConfigPath = configPath
+          def startTesting = {
+            def workerNumber = nextWorker
+            def lastConfigPath = null
+            
+            nextWorker++
 
-                cStage('Launch Kibana/ES') {
-                  withEnv """
-                    cd "\$XPACK_DIR"
+            cStage('Copy Kibana') {
+              withEnv """
+                installDir="\$PARENT_DIR/install/kibana"
+                destDir=\${installDir}-${workerNumber}
+                cp -R "\$installDir" "\$destDir"
+              """
+            }
 
-                    rm -f test-server-output.log
-                    installDir="\$PARENT_DIR/install/kibana"
-                    if [ -f runner.pid ]; then kill \$(cat runner.pid); sleep 5; fi
-                    nohup node scripts/functional_tests_server --config '${configPath}' --kibana-install-dir "\$installDir" > test-server-output.log & echo \$! > runner.pid
-                  """
+            def kibanaPort = "61${workerNumber}1"
+            def esPort = "61${workerNumber}2"
 
-                  sleep 10 // TODO
+            def portString = "TEST_KIBANA_URL=http://elastic:changeme@localhost:${kibanaPort} TEST_ES_URL=http://elastic:changeme@localhost:${esPort}"
 
-                  sh 'cat x-pack/test-server-output.log'
+            configPaths.each { configPath ->
+              while(!xpackSuites[configPath].isEmpty()) {
+                def testSuites = [xpackSuites[configPath].pop()].flatten()
 
-                  // TODO
-                  waitTil {
-                    // TODO also check for process still running
-                    return sh (
-                      script: 'grep "Elasticsearch and Kibana are ready" x-pack/test-server-output.log',
-                      returnStatus: true
-                    ) == 0
-                  }
+                if (configPath != lastConfigPath) {
+                  lastConfigPath = configPath
 
-                  sh 'cat x-pack/test-server-output.log'
-                }
-              }
-
-              try {
-                cStage(testSuites.join(", ")) {
-                  withTestReporter {
-                    def tagArgs = testSuites.collect { "--include-tag '${it}'" }.join(" ")
-
+                  cStage('Launch Kibana/ES') {
                     withEnv """
-                      set -e
-                      export TEST_BROWSER_HEADLESS=1
-
-                      echo " -> Running functional and api tests"
                       cd "\$XPACK_DIR"
 
-                      checks-reporter-with-killswitch "X-Pack Chrome Functional tests / Group ${testSuites.join(", ")}" \
-                        node ../scripts/functional_test_runner \
-                          --debug --bail \
-                          --config '${configPath}' \
-                          ${tagArgs}
-
-                      echo ""
-                      echo ""
-
-                      ${additionalScript ?: ''}
+                      rm -f test-server-output-${workerNumber}.log
+                      installDir="\$PARENT_DIR/install/kibana-${workerNumber}"
+                      if [ -f runner-${workerNumber}.pid ]; then kill \$(cat runner-${workerNumber}.pid); sleep 5; fi
+                      ${portString} nohup node scripts/functional_tests_server --config '${configPath}' --kibana-install-dir "\$installDir" > test-server-output-${workerNumber}.log & echo \$! > runner-${workerNumber}.pid
                     """
+
+                    sleep 10 // TODO
+
+                    sh "cat x-pack/test-server-output-${workerNumber}.log"
+
+                    // TODO
+                    waitTil {
+                      // TODO also check for process still running
+                      return sh (
+                        script: "grep 'Elasticsearch and Kibana are ready' x-pack/test-server-output-${workerNumber}.log",
+                        returnStatus: true
+                      ) == 0
+                    }
+
+                    sh "cat x-pack/test-server-output-${workerNumber}.log"
                   }
                 }
-              } catch (ex) {
-                print "Error during xpack test suite: ${testSuite}"
-                print ex.toString()
 
-                failedTests << [config: configPath, suite: testSuite, error: ex]
+                try {
+                  cStage("${workerNumber}: " + testSuites.join(", ")) {
+                    withTestReporter {
+                      def tagArgs = testSuites.collect { "--include-tag '${it}'" }.join(" ")
+
+                      withEnv """
+                        set -e
+                        export TEST_BROWSER_HEADLESS=1
+
+                        echo " -> Running functional and api tests"
+                        cd "\$XPACK_DIR"
+
+                        ${portString} checks-reporter-with-killswitch "X-Pack Chrome Functional tests / Group ${testSuites.join(", ")}" \
+                          node ../scripts/functional_test_runner \
+                            --debug --bail \
+                            --config '${configPath}' \
+                            ${tagArgs}
+
+                        echo ""
+                        echo ""
+
+                        ${additionalScript ?: ''}
+                      """
+                    }
+                  }
+                } catch (ex) {
+                  print "Error during xpack test suite: ${testSuite}"
+                  print ex.toString()
+
+                  failedTests << [config: configPath, suite: testSuite, error: ex]
+                }
               }
             }
           }
+
+          parallel([
+            worker1: { startTesting() },
+            worker2: { startTesting() },
+          ])
         }
       }
     }
@@ -818,41 +844,41 @@ def root = rootStage(this) {
           'oss-testRunner19': ossCiGroupRunner(),
           'oss-testRunner20': ossCiGroupRunner(),
           'Build Default Kibana': { buildDefaultKibana() },
-          'xpack-testRunner1': xpackCiGroupRunner(["test/reporting/configs/chromium_api.js"]),
-          'xpack-testRunner2': xpackCiGroupRunner(["test/reporting/configs/chromium_functional.js"]),
+          // 'xpack-testRunner1': xpackCiGroupRunner(["test/reporting/configs/chromium_api.js"]),
+          // 'xpack-testRunner2': xpackCiGroupRunner(["test/reporting/configs/chromium_functional.js"]),
           'xpack-testRunner4': xpackCiGroupRunner(["test/functional/config.js"]),
           'xpack-testRunner4-2': xpackCiGroupRunner(["test/functional/config.js"]),
           'xpack-testRunner4-3': xpackCiGroupRunner(["test/functional/config.js"]),
           'xpack-testRunner4-4': xpackCiGroupRunner(["test/functional/config.js"]),
           'xpack-testRunner4-5': xpackCiGroupRunner(["test/functional/config.js"]),
-          'xpack-testRunner4-6': xpackCiGroupRunner(["test/functional/config.js"]),
-          'xpack-testRunner4-7': xpackCiGroupRunner(["test/functional/config.js"]),
-          'xpack-testRunner4-8': xpackCiGroupRunner(["test/functional/config.js"]),
-          'xpack-testRunner4-9': xpackCiGroupRunner(["test/functional/config.js"]),
-          'xpack-testRunner4-10': xpackCiGroupRunner(["test/functional/config.js"]),
-          'xpack-testRunner5': xpackCiGroupRunner([
-            "test/api_integration/config_security_basic.js",
-            "test/plugin_api_integration/config.js",
-            "test/kerberos_api_integration/config.ts",
-            "test/saml_api_integration/config.js",
-            "test/token_api_integration/config.js",
-          ]),
-          'xpack-testRunner5-2': xpackCiGroupRunner([
-            "test/oidc_api_integration/config.ts",
-            "test/oidc_api_integration/implicit_flow.config.ts",
-            "test/spaces_api_integration/spaces_only/config.ts",
-            "test/ui_capabilities/security_only/config.ts",
-            "test/upgrade_assistant_integration/config.js",
-          ]),
-          'xpack-testRunner6': xpackCiGroupRunner(["test/api_integration/config.js"]),
-          'xpack-testRunner6-2': xpackCiGroupRunner(["test/api_integration/config.js"]), 
-          'xpack-testRunner6-3': xpackCiGroupRunner(["test/api_integration/config.js"]),
-          'xpack-testRunner7': xpackCiGroupRunner(["test/alerting_api_integration/config_security_enabled.js"]),
-          'xpack-testRunner17': xpackCiGroupRunner(["test/spaces_api_integration/security_and_spaces/config_trial.ts"]),
-          'xpack-testRunner19': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]),
-          'xpack-testRunner19-2': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]),
-          'xpack-testRunner20': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_basic.ts"]),
-          'xpack-testRunner22': xpackCiGroupRunner(["test/saved_object_api_integration/security_only/config_basic.ts"]),
+          // 'xpack-testRunner4-6': xpackCiGroupRunner(["test/functional/config.js"]),
+          // 'xpack-testRunner4-7': xpackCiGroupRunner(["test/functional/config.js"]),
+          // 'xpack-testRunner4-8': xpackCiGroupRunner(["test/functional/config.js"]),
+          // 'xpack-testRunner4-9': xpackCiGroupRunner(["test/functional/config.js"]),
+          // 'xpack-testRunner4-10': xpackCiGroupRunner(["test/functional/config.js"]),
+          // 'xpack-testRunner5': xpackCiGroupRunner([
+          //   "test/api_integration/config_security_basic.js",
+          //   "test/plugin_api_integration/config.js",
+          //   "test/kerberos_api_integration/config.ts",
+          //   "test/saml_api_integration/config.js",
+          //   "test/token_api_integration/config.js",
+          // ]),
+          // 'xpack-testRunner5-2': xpackCiGroupRunner([
+          //   "test/oidc_api_integration/config.ts",
+          //   "test/oidc_api_integration/implicit_flow.config.ts",
+          //   "test/spaces_api_integration/spaces_only/config.ts",
+          //   "test/ui_capabilities/security_only/config.ts",
+          //   "test/upgrade_assistant_integration/config.js",
+          // ]),
+          // 'xpack-testRunner6': xpackCiGroupRunner(["test/api_integration/config.js"]),
+          // 'xpack-testRunner6-2': xpackCiGroupRunner(["test/api_integration/config.js"]), 
+          // 'xpack-testRunner6-3': xpackCiGroupRunner(["test/api_integration/config.js"]),
+          // 'xpack-testRunner7': xpackCiGroupRunner(["test/alerting_api_integration/config_security_enabled.js"]),
+          // 'xpack-testRunner17': xpackCiGroupRunner(["test/spaces_api_integration/security_and_spaces/config_trial.ts"]),
+          // 'xpack-testRunner19': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]),
+          // 'xpack-testRunner19-2': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_trial.ts"]),
+          // 'xpack-testRunner20': xpackCiGroupRunner(["test/saved_object_api_integration/security_and_spaces/config_basic.ts"]),
+          // 'xpack-testRunner22': xpackCiGroupRunner(["test/saved_object_api_integration/security_only/config_basic.ts"]),
           // 'oss-intake': {
           //   withBootstrappedWorker {
           //     stage('OSS Intake') {
