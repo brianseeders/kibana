@@ -8,13 +8,13 @@ def ossWorkspaceArchiveFilename = 'workspace-oss.archive.tar.gz'
 def defaultWorkspaceArchiveFilename = 'workspace-default.archive.tar.gz'
 
 def RUN_OSS = true
-def RUN_DEFAULT = true
+def RUN_DEFAULT = false
 
-def ossKibanaBuildComplete = false
-def ossKibanaBuildUploaded = false
+def ossKibanaBuildComplete = true
+def ossKibanaBuildUploaded = true
 
-def defaultKibanaBuildComplete = false
-def defaultKibanaBuildUploaded = false
+def defaultKibanaBuildComplete = true
+def defaultKibanaBuildUploaded = true
 
 def waitTil(conditionClosure) {
   for(def i = 0; i < 50000 && !conditionClosure(); i++) {
@@ -525,7 +525,7 @@ def root = rootStage(this) {
         }
 
         // TODO need to move functionalTests:ensureAllTestsInCiGroup to before the build
-        node('linux && immutable && tests-large') {
+        node('testrunner-large') {
           skipDefaultCheckout()
 
           env.HOME = env.JENKINS_HOME
@@ -683,7 +683,7 @@ def root = rootStage(this) {
           waitTil { defaultKibanaBuildComplete }
         }
 
-        node('linux && immutable && tests-large') {
+        node('testrunner-large') {
           skipDefaultCheckout()
 
           env.HOME = env.JENKINS_HOME
