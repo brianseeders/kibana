@@ -820,17 +820,17 @@ def root = rootStage(this) {
                 try {
                   runTests()
                 } catch (ex) {
-                  print "Error during xpack test suite: ${testSuite}"
+                  print "Error during xpack test suites: ${testSuites.join(", ")}"
                   print ex.toString()
 
                   try {
                     runTests()
-                    unstable "xpack test succeeded on second attempt, considering flaky: ${testSuite}"
-                    flakyTests << [type: "xpack", suite: testSuite]
+                    unstable "xpack test succeeded on second attempt, considering flaky: ${testSuites.join(", ")}"
+                    flakyTests << [type: "xpack", suite: testSuites]
                   } catch(innerException) {
-                    print "Error during xpack test suite: ${testSuite}"
+                    print "Error during xpack test suite: ${testSuites.join(", ")}"
                     print innerException.toString()
-                    failedTests << [type: "xpack", suite: testSuite]
+                    failedTests << [type: "xpack", suite: testSuites]
                   }
                 }
               }
