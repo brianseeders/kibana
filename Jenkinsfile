@@ -8,13 +8,13 @@ def ossWorkspaceArchiveFilename = 'workspace-oss.archive.tar.gz'
 def defaultWorkspaceArchiveFilename = 'workspace-default.archive.tar.gz'
 
 def RUN_OSS = true
-def RUN_DEFAULT = false
+def RUN_DEFAULT = true
 
-def ossKibanaBuildComplete = true
-def ossKibanaBuildUploaded = true
+def ossKibanaBuildComplete = false
+def ossKibanaBuildUploaded = false
 
-def defaultKibanaBuildComplete = true
-def defaultKibanaBuildUploaded = true
+def defaultKibanaBuildComplete = false
+def defaultKibanaBuildUploaded = false
 
 def waitTil(conditionClosure) {
   for(def i = 0; i < 50000 && !conditionClosure(); i++) {
