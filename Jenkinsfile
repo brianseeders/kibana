@@ -853,7 +853,7 @@ def root = rootStage(this) {
   }
 
   def withBootstrappedWorker = { closure ->
-    node('linux && immutable && builds') {
+    node('testrunner-large') {
       skipDefaultCheckout()
 
       env.HOME = env.JENKINS_HOME
