@@ -445,70 +445,80 @@ def xpackSuites = [
   ]
 ]
 
-class CStage {
-  String name
-  String fullName
+// class CStage {
+//   String name
+//   String fullName
 
-  List<CStage> stages = []
-  Date start
-  Date end
-  WorkflowScript ctx
+//   List<CStage> stages = []
+//   Date start
+//   Date end
+//   WorkflowScript ctx
 
-  CStage(name, prevName, ctx) {
-    this.name = name
-    this.fullName = "${prevName}[${name}]"
-    this.ctx = ctx
-    this.start = new Date()
-  }
+//   CStage(name, prevName, ctx) {
+//     this.name = name
+//     this.fullName = "${prevName}[${name}]"
+//     this.ctx = ctx
+//     this.start = new Date()
+//   }
 
-  def addStage(CStage stage) {
-    this.stages << stage
-  }
+//   def addStage(CStage stage) {
+//     this.stages << stage
+//   }
 
-  def setEnd() {
-    this.end = new Date();
-  }
-}
+//   def setEnd() {
+//     this.end = new Date();
+//   }
+// }
 
-class StageContext {
-  CStage parentStage
-  Closure cStage
+// class StageContext {
+//   CStage parentStage
+//   Closure cStage
 
-  def cStage(name, Closure closure) {
-    this.parentStage.ctx.print "Stage start: ${name}"
-    def stage = new CStage(name, this.parentStage.fullName, this.parentStage.ctx)
-    this.parentStage.addStage(stage)
-    closure.resolveStrategy = Closure.DELEGATE_FIRST
-    closure.delegate = new StageContext(stage)
-    try {
-      closure()
-    } finally {
-      stage.setEnd()
-      def duration = groovy.time.TimeCategory.minus(stage.end, stage.start)
-      this.parentStage.ctx.print "Stage end: ${stage.fullName} (${duration})"
-    }
-  }
+//   def cStage(name, Closure closure) {
+//     this.parentStage.ctx.print "Stage start: ${name}"
+//     def stage = new CStage(name, this.parentStage.fullName, this.parentStage.ctx)
+//     this.parentStage.addStage(stage)
+//     closure.resolveStrategy = Closure.DELEGATE_FIRST
+//     closure.delegate = new StageContext(stage)
+//     try {
+//       closure()
+//     } finally {
+//       stage.setEnd()
+//       def duration = groovy.time.TimeCategory.minus(stage.end, stage.start)
+//       this.parentStage.ctx.print "Stage end: ${stage.fullName} (${duration})"
+//     }
+//   }
 
-  StageContext(parentStage) {
-    this.parentStage = parentStage
-  }
-}
+//   StageContext(parentStage) {
+//     this.parentStage = parentStage
+//   }
+// }
 
-def rootStage(ctx, closure) {
-  def stage = new CStage('root', '', ctx)
-  closure.resolveStrategy = Closure.DELEGATE_FIRST
-  closure.delegate = new StageContext(stage)
+// def rootStage(ctx, closure) {
+//   def stage = new CStage('root', '', ctx)
+//   closure.resolveStrategy = Closure.DELEGATE_FIRST
+//   closure.delegate = new StageContext(stage)
+//   closure()
+//   stage.setEnd()
+
+//   return stage
+// }
+
+// def printStages(stage, prev = '') {
+//   def stageString = stage.fullName
+//   def duration = groovy.time.TimeCategory.minus(stage.end, stage.start)
+//   print "${stageString} (${duration})"
+//   stage.stages.each { printStages(it, stageString) }
+// }
+
+def cStage(stage, closure) {
+  print "Begin Stage: ${stage}"
   closure()
-  stage.setEnd()
-
-  return stage
+  print "End Stage: ${stage}"
 }
 
-def printStages(stage, prev = '') {
-  def stageString = stage.fullName
-  def duration = groovy.time.TimeCategory.minus(stage.end, stage.start)
-  print "${stageString} (${duration})"
-  stage.stages.each { printStages(it, stageString) }
+def rootStage(_, closure) {
+  cStage('Root', closure)
 }
 
 // TODO wrap rootStage in a try{} and print info
