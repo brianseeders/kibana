@@ -42,33 +42,82 @@ timeout(time: 180, unit: 'MINUTES') {
 }
 
 def withWorker(name, closure) {
-  stage("Worker: ${name}") {
-    node('linux && immutable') {
-      closure()
-    }
+  node('linux && immutable') {
+    closure()
   }
 }
 
 def jobRunner(name) {
   return {
-    withEnv([
-      "JOB=${name}",
-      "CI=true",
-      "HOME=${env.JENKINS_HOME}",
-    ]) {
-      withWorker(name) {
-        stage('Checkout') {
+    catchError {
+      withEnv([
+        "JOB=${name}",
+        "CI=true",
+        "HOME=${env.JENKINS_HOME}",
+      ]) {
+        withWorker(name) {
           checkout scm
-        }
 
-        dir('kibana') {
-          stage('Run CI') {
-            runbld('.ci/run.sh')
+          // scm is configured to check out to the ./kibana directory
+          dir('kibana') {
+            stage(name) {
+              sh 'env' // TODO remove
+
+              try {
+                runbld('.ci/run.sh')
+              } finally {
+                uploadAllGcsArtifacts(name)
+                publishJunit()
+              }
+            }
           }
         }
       }
     }
+    
+    sendMail()
   }
+}
+
+def uploadGcsArtifact(jobName, pattern) {
+  def storageLocation = "gs://kibana-ci-artifacts/jobs/pipeline-test/${BUILD_NUMBER}/${jobName}"
+
+  googleStorageUpload(
+    credentialsId: 'kibana-ci-gcs-plugin',
+    bucket: storageLocation,
+    pattern: pattern,
+    sharedPublicly: true,
+    showInline: true,
+  )
+}
+
+def uploadAllGcsArtifacts(jobName) {
+  def ARTIFACT_PATTERNS = [
+    'target/kibana-*',
+    'target/junit/**/*',
+    'test/**/screenshots/**/*.png',
+    'test/functional/failure_debug/html/*.html',
+    'x-pack/test/**/screenshots/**/*.png',
+    'x-pack/test/functional/failure_debug/html/*.html',
+    'x-pack/test/functional/apps/reporting/reports/session/*.pdf',
+  ]
+
+  ARTIFACT_PATTERNS.each { pattern ->
+    uploadGcsArtifact(jobName, pattern)
+  }
+}
+
+def publishJunit() {
+  junit(testResults: 'target/junit/**/*.xml', allowEmptyResults: true, keepLongStdio: true)
+}
+
+def sendMail() {
+  step([
+    $class: 'Mailer',
+    notifyEveryUnstableBuild: true,
+    recipients: 'infra-root+build@elastic.co',
+    sendToIndividuals: false
+  ])
 }
 
 def runbld(script) {
@@ -78,4 +127,3 @@ def runbld(script) {
 def bash(script) {
   sh "#!/bin/bash -x\n${script}"
 }
-
