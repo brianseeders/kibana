@@ -1,5 +1,13 @@
 #!/bin/groovy
 
+library 'kibana-pipeline-library'
+
+// library identifier: 'kibana-pipeline-library@master', retriever: modernSCM([
+//   $class: 'GitSCMSource',
+//   remote: 'git@github.com:elastic/kibana-pipeline-library.git',
+//   credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba'
+// ])
+
 def failedTests = []
 def flakyTests = []
 
@@ -8,13 +16,13 @@ def ossWorkspaceArchiveFilename = 'workspace-oss.archive.tar.gz'
 def defaultWorkspaceArchiveFilename = 'workspace-default.archive.tar.gz'
 
 def RUN_OSS = true
-def RUN_DEFAULT = true
+def RUN_DEFAULT = false
 
-def ossKibanaBuildComplete = false
-def ossKibanaBuildUploaded = false
+def ossKibanaBuildComplete = true
+def ossKibanaBuildUploaded = true
 
-def defaultKibanaBuildComplete = false
-def defaultKibanaBuildUploaded = false
+def defaultKibanaBuildComplete = true
+def defaultKibanaBuildUploaded = true
 
 def waitTil(conditionClosure) {
   for(def i = 0; i < 50000 && !conditionClosure(); i++) {
@@ -28,127 +36,127 @@ def ossTestSuites = [
   "api_integration.apis.general.csp",
   "api_integration.apis.home.sample_data",
   "api_integration.apis.index_patterns.es_errors.errors",
-  "api_integration.apis.index_patterns.fields_for_time_pattern_route.errors",
-  "api_integration.apis.index_patterns.fields_for_time_pattern_route.pattern",
-  "api_integration.apis.index_patterns.fields_for_time_pattern_route.query_params",
-  "api_integration.apis.index_patterns.fields_for_wildcard_route.conflicts",
-  "api_integration.apis.index_patterns.fields_for_wildcard_route.params",
-  "api_integration.apis.index_patterns.fields_for_wildcard_route.response",
-  "api_integration.apis.kql_telemetry.kql_telemetry",
-  "api_integration.apis.management.saved_objects.find",
-  "api_integration.apis.management.saved_objects.relationships",
-  "api_integration.apis.saved_objects.bulk_create",
-  "api_integration.apis.saved_objects.bulk_get",
-  "api_integration.apis.saved_objects.create",
-  "api_integration.apis.saved_objects.delete",
-  "api_integration.apis.saved_objects.export",
-  "api_integration.apis.saved_objects.find",
-  "api_integration.apis.saved_objects.get",
-  "api_integration.apis.saved_objects.import",
-  "api_integration.apis.saved_objects.migrations",
-  "api_integration.apis.saved_objects.resolve_import_errors",
-  "api_integration.apis.saved_objects.update",
-  "api_integration.apis.scripts.languages",
-  "api_integration.apis.search.count",
-  "api_integration.apis.shorten",
-  "api_integration.apis.stats.stats",
-  "api_integration.apis.status.status",
-  "api_integration.apis.suggestions.suggestions",
-  "api_integration.apis.ui_metric.ui_metric",
-  "functional.apps.console._console",
-  "functional.apps.context._date_nanos",
-  "functional.apps.context._discover_navigation",
-  "functional.apps.context._filters",
-  "functional.apps.context._size",
-  "functional.apps.dashboard.bwc_shared_urls",
-  "functional.apps.dashboard.create_and_add_embeddables",
-  "functional.apps.dashboard.dashboard_clone",
-  "functional.apps.dashboard.dashboard_filter_bar",
-  "functional.apps.dashboard.dashboard_filtering",
-  "functional.apps.dashboard.dashboard_grid",
-  "functional.apps.dashboard.dashboard_listing",
-  "functional.apps.dashboard.dashboard_options",
-  "functional.apps.dashboard.dashboard_query_bar",
-  "functional.apps.dashboard.dashboard_save",
-  "functional.apps.dashboard.dashboard_snapshots",
-  "functional.apps.dashboard.dashboard_state",
-  "functional.apps.dashboard.dashboard_time_picker",
-  "functional.apps.dashboard.data_shared_attributes",
-  "functional.apps.dashboard.embed_mode",
-  "functional.apps.dashboard.embeddable_rendering",
-  "functional.apps.dashboard.empty_dashboard",
-  "functional.apps.dashboard.full_screen_mode",
-  "functional.apps.dashboard.panel_controls",
-  "functional.apps.dashboard.panel_expand_toggle",
-  "functional.apps.dashboard.time_zones",
-  "functional.apps.dashboard.view_edit",
-  "functional.apps.discover._date_nanos",
-  "functional.apps.discover._discover",
-  "functional.apps.discover._doc_navigation",
-  "functional.apps.discover._errors",
-  "functional.apps.discover._field_data",
-  "functional.apps.discover._inspector",
-  "functional.apps.discover._large_string",
-  "functional.apps.discover._shared_links",
-  "functional.apps.discover._sidebar",
-  "functional.apps.discover._source_filters",
-  "functional.apps.getting_started._shakespeare",
-  "functional.apps.home._add_data",
-  "functional.apps.home._home",
-  "functional.apps.home._navigation",
-  "functional.apps.home._sample_data",
-  "functional.apps.management._create_index_pattern_wizard",
-  "functional.apps.management._handle_alias",
-  "functional.apps.management._handle_version_conflict",
-  "functional.apps.management._import_objects",
-  "functional.apps.management._index_pattern_create_delete",
-  "functional.apps.management._index_pattern_filter",
-  "functional.apps.management._index_pattern_popularity",
-  "functional.apps.management._index_pattern_results_sort",
-  "functional.apps.management._kibana_settings",
-  "functional.apps.management._scripted_fields_filter",
-  "functional.apps.management._scripted_fields_preview",
-  "functional.apps.management._test_huge_fields",
-  "functional.apps.status_page",
-  "functional.apps.timelion._expression_typeahead",
-  "functional.apps.visualize._area_chart",
-  "functional.apps.visualize._chart_types",
-  "functional.apps.visualize._data_table_nontimeindex",
-  "functional.apps.visualize._embedding_chart",
-  "functional.apps.visualize._experimental_vis",
-  "functional.apps.visualize._gauge_chart",
-  "functional.apps.visualize._heatmap_chart",
-  "functional.apps.visualize._histogram_request_start",
-  "functional.apps.visualize._inspector",
-  "functional.apps.visualize._lab_mode",
-  "functional.apps.visualize._line_chart",
-  "functional.apps.visualize._linked_saved_searches",
-  "functional.apps.visualize._markdown_vis",
-  "functional.apps.visualize._metric_chart",
-  "functional.apps.visualize._pie_chart",
-  "functional.apps.visualize._point_series_options",
-  "functional.apps.visualize._region_map",
-  "functional.apps.visualize._shared_item",
-  "functional.apps.visualize._tag_cloud",
-  "functional.apps.visualize._tile_map",
-  "functional.apps.visualize._tsvb_chart",
-  "functional.apps.visualize._tsvb_markdown",
-  "functional.apps.visualize._tsvb_table",
-  "functional.apps.visualize._tsvb_time_series",
-  "functional.apps.visualize._vega_chart",
-  "functional.apps.visualize._vertical_bar_chart_nontimeindex",
-  "functional.apps.visualize._visualize_listing",
-  "functional.apps.visualize.input_control_vis.chained_controls",
-  "functional.apps.visualize.input_control_vis.dynamic_options",
-  "functional.apps.visualize.input_control_vis.input_control_options",
-  "interpreter_functional.run_pipeline.basic",
-  "interpreter_functional.run_pipeline.metric",
-  "interpreter_functional.run_pipeline.tag_cloud",
-  "plugin_functional.app_plugins.app_navigation",
-  "plugin_functional.core_plugins.ui_plugins",
-  "plugin_functional.custom_visualizations.self_changing_vis",
-  "plugin_functional.embedding_visualizations.embed_by_id",
-  "plugin_functional.panel_actions.panel_actions",
+  // "api_integration.apis.index_patterns.fields_for_time_pattern_route.errors",
+  // "api_integration.apis.index_patterns.fields_for_time_pattern_route.pattern",
+  // "api_integration.apis.index_patterns.fields_for_time_pattern_route.query_params",
+  // "api_integration.apis.index_patterns.fields_for_wildcard_route.conflicts",
+  // "api_integration.apis.index_patterns.fields_for_wildcard_route.params",
+  // "api_integration.apis.index_patterns.fields_for_wildcard_route.response",
+  // "api_integration.apis.kql_telemetry.kql_telemetry",
+  // "api_integration.apis.management.saved_objects.find",
+  // "api_integration.apis.management.saved_objects.relationships",
+  // "api_integration.apis.saved_objects.bulk_create",
+  // "api_integration.apis.saved_objects.bulk_get",
+  // "api_integration.apis.saved_objects.create",
+  // "api_integration.apis.saved_objects.delete",
+  // "api_integration.apis.saved_objects.export",
+  // "api_integration.apis.saved_objects.find",
+  // "api_integration.apis.saved_objects.get",
+  // "api_integration.apis.saved_objects.import",
+  // "api_integration.apis.saved_objects.migrations",
+  // "api_integration.apis.saved_objects.resolve_import_errors",
+  // "api_integration.apis.saved_objects.update",
+  // "api_integration.apis.scripts.languages",
+  // "api_integration.apis.search.count",
+  // "api_integration.apis.shorten",
+  // "api_integration.apis.stats.stats",
+  // "api_integration.apis.status.status",
+  // "api_integration.apis.suggestions.suggestions",
+  // "api_integration.apis.ui_metric.ui_metric",
+  // "functional.apps.console._console",
+  // "functional.apps.context._date_nanos",
+  // "functional.apps.context._discover_navigation",
+  // "functional.apps.context._filters",
+  // "functional.apps.context._size",
+  // "functional.apps.dashboard.bwc_shared_urls",
+  // "functional.apps.dashboard.create_and_add_embeddables",
+  // "functional.apps.dashboard.dashboard_clone",
+  // "functional.apps.dashboard.dashboard_filter_bar",
+  // "functional.apps.dashboard.dashboard_filtering",
+  // "functional.apps.dashboard.dashboard_grid",
+  // "functional.apps.dashboard.dashboard_listing",
+  // "functional.apps.dashboard.dashboard_options",
+  // "functional.apps.dashboard.dashboard_query_bar",
+  // "functional.apps.dashboard.dashboard_save",
+  // "functional.apps.dashboard.dashboard_snapshots",
+  // "functional.apps.dashboard.dashboard_state",
+  // "functional.apps.dashboard.dashboard_time_picker",
+  // "functional.apps.dashboard.data_shared_attributes",
+  // "functional.apps.dashboard.embed_mode",
+  // "functional.apps.dashboard.embeddable_rendering",
+  // "functional.apps.dashboard.empty_dashboard",
+  // "functional.apps.dashboard.full_screen_mode",
+  // "functional.apps.dashboard.panel_controls",
+  // "functional.apps.dashboard.panel_expand_toggle",
+  // "functional.apps.dashboard.time_zones",
+  // "functional.apps.dashboard.view_edit",
+  // "functional.apps.discover._date_nanos",
+  // "functional.apps.discover._discover",
+  // "functional.apps.discover._doc_navigation",
+  // "functional.apps.discover._errors",
+  // "functional.apps.discover._field_data",
+  // "functional.apps.discover._inspector",
+  // "functional.apps.discover._large_string",
+  // "functional.apps.discover._shared_links",
+  // "functional.apps.discover._sidebar",
+  // "functional.apps.discover._source_filters",
+  // "functional.apps.getting_started._shakespeare",
+  // "functional.apps.home._add_data",
+  // "functional.apps.home._home",
+  // "functional.apps.home._navigation",
+  // "functional.apps.home._sample_data",
+  // "functional.apps.management._create_index_pattern_wizard",
+  // "functional.apps.management._handle_alias",
+  // "functional.apps.management._handle_version_conflict",
+  // "functional.apps.management._import_objects",
+  // "functional.apps.management._index_pattern_create_delete",
+  // "functional.apps.management._index_pattern_filter",
+  // "functional.apps.management._index_pattern_popularity",
+  // "functional.apps.management._index_pattern_results_sort",
+  // "functional.apps.management._kibana_settings",
+  // "functional.apps.management._scripted_fields_filter",
+  // "functional.apps.management._scripted_fields_preview",
+  // "functional.apps.management._test_huge_fields",
+  // "functional.apps.status_page",
+  // "functional.apps.timelion._expression_typeahead",
+  // "functional.apps.visualize._area_chart",
+  // "functional.apps.visualize._chart_types",
+  // "functional.apps.visualize._data_table_nontimeindex",
+  // "functional.apps.visualize._embedding_chart",
+  // "functional.apps.visualize._experimental_vis",
+  // "functional.apps.visualize._gauge_chart",
+  // "functional.apps.visualize._heatmap_chart",
+  // "functional.apps.visualize._histogram_request_start",
+  // "functional.apps.visualize._inspector",
+  // "functional.apps.visualize._lab_mode",
+  // "functional.apps.visualize._line_chart",
+  // "functional.apps.visualize._linked_saved_searches",
+  // "functional.apps.visualize._markdown_vis",
+  // "functional.apps.visualize._metric_chart",
+  // "functional.apps.visualize._pie_chart",
+  // "functional.apps.visualize._point_series_options",
+  // "functional.apps.visualize._region_map",
+  // "functional.apps.visualize._shared_item",
+  // "functional.apps.visualize._tag_cloud",
+  // "functional.apps.visualize._tile_map",
+  // "functional.apps.visualize._tsvb_chart",
+  // "functional.apps.visualize._tsvb_markdown",
+  // "functional.apps.visualize._tsvb_table",
+  // "functional.apps.visualize._tsvb_time_series",
+  // "functional.apps.visualize._vega_chart",
+  // "functional.apps.visualize._vertical_bar_chart_nontimeindex",
+  // "functional.apps.visualize._visualize_listing",
+  // "functional.apps.visualize.input_control_vis.chained_controls",
+  // "functional.apps.visualize.input_control_vis.dynamic_options",
+  // "functional.apps.visualize.input_control_vis.input_control_options",
+  // "interpreter_functional.run_pipeline.basic",
+  // "interpreter_functional.run_pipeline.metric",
+  // "interpreter_functional.run_pipeline.tag_cloud",
+  // "plugin_functional.app_plugins.app_navigation",
+  // "plugin_functional.core_plugins.ui_plugins",
+  // "plugin_functional.custom_visualizations.self_changing_vis",
+  // "plugin_functional.embedding_visualizations.embed_by_id",
+  // "plugin_functional.panel_actions.panel_actions",
 ]
 
 def xpackSuites = [
@@ -445,79 +453,23 @@ def xpackSuites = [
   ]
 ]
 
-class CStage {
-  String name
-  String fullName
+// TODO sort out script-approval stuff required for the stage wrapper to work in real CI env
+// def phase(name, closure) {
+//   print "Begin stage: ${name}"
+//   closure()
+// }
 
-  List<CStage> stages = []
-  Date start
-  Date end
-  WorkflowScript ctx
-
-  CStage(name, prevName, ctx) {
-    this.name = name
-    this.fullName = "${prevName}[${name}]"
-    this.ctx = ctx
-    this.start = new Date()
-  }
-
-  def addStage(CStage stage) {
-    this.stages << stage
-  }
-
-  def setEnd() {
-    this.end = new Date();
-  }
-}
-
-class StageContext {
-  CStage parentStage
-  Closure cStage
-
-  def cStage(name, Closure closure) {
-    this.parentStage.ctx.print "Stage start: ${name}"
-    def stage = new CStage(name, this.parentStage.fullName, this.parentStage.ctx)
-    this.parentStage.addStage(stage)
-    closure.resolveStrategy = Closure.DELEGATE_FIRST
-    closure.delegate = new StageContext(stage)
-    try {
-      closure()
-    } finally {
-      stage.setEnd()
-      def duration = groovy.time.TimeCategory.minus(stage.end, stage.start)
-      this.parentStage.ctx.print "Stage end: ${stage.fullName} (${duration})"
-    }
-  }
-
-  StageContext(parentStage) {
-    this.parentStage = parentStage
-  }
-}
-
-def rootStage(ctx, closure) {
-  def stage = new CStage('root', '', ctx)
-  closure.resolveStrategy = Closure.DELEGATE_FIRST
-  closure.delegate = new StageContext(stage)
-  closure()
-  stage.setEnd()
-
-  return stage
-}
-
-def printStages(stage, prev = '') {
-  def stageString = stage.fullName
-  def duration = groovy.time.TimeCategory.minus(stage.end, stage.start)
-  print "${stageString} (${duration})"
-  stage.stages.each { printStages(it, stageString) }
-}
+// def rootStage(_, closure) {
+//   phase('root', closure)
+// }
 
 // TODO wrap rootStage in a try{} and print info
-def root = rootStage(this) {
+def root = phase.root(this) {
   def ossCiGroupRunner = { additionalScript='' ->
     return {
       if (!RUN_OSS) { return }
 
-      cStage("oss-testRunner") {
+      phase("oss-testRunner") {
 
         if (!ossKibanaBuildComplete) {
           sleep 360
@@ -525,7 +477,7 @@ def root = rootStage(this) {
         }
 
         // TODO need to move functionalTests:ensureAllTestsInCiGroup to before the build
-        node('linux && immutable && tests-large') {
+        node('testrunner-large') {
           skipDefaultCheckout()
 
           env.HOME = env.JENKINS_HOME
@@ -535,7 +487,7 @@ def root = rootStage(this) {
             waitTil { ossKibanaBuildUploaded }
           }
 
-          cStage('Download archive') {
+          phase('Download archive') {
             step([
               $class: 'DownloadStep',
               credentialsId: 'kibana-ci-gcs-plugin',
@@ -544,7 +496,7 @@ def root = rootStage(this) {
             ])
           }
 
-          cStage('Extract archive') {
+          phase('Extract archive') {
             bash "tar -xzf workspaces/latest/${ossWorkspaceArchiveFilename}"
             bash 'rm -rf /var/lib/jenkins/.kibana/node && mv var/lib/jenkins/.kibana/node /var/lib/jenkins/.kibana/'
           }
@@ -569,7 +521,7 @@ def root = rootStage(this) {
 
             nextWorker++
 
-            cStage('Copy Kibana') {
+            phase('Copy Kibana') {
               withEnv """
                 installDir="\$PARENT_DIR/install/kibana"
                 destDir=\${installDir}-${workerNumber}
@@ -581,10 +533,9 @@ def root = rootStage(this) {
             def esPort = "61${workerNumber}2"
 
             def portString = "TEST_KIBANA_URL=http://elastic:changeme@localhost:${kibanaPort} TEST_ES_URL=http://elastic:changeme@localhost:${esPort}"
-            
-            // nohup yarn test:ui:server --kibana-install-dir "\$installDir" > test-server-output.log &
 
-            cStage('Launch Kibana/ES') {
+            // TODO replace nohup/etc with something better
+            phase('Launch Kibana/ES') {
               withEnv """
                 cd "\$KIBANA_DIR"
 
@@ -608,10 +559,15 @@ def root = rootStage(this) {
 
             while(!ossTestSuites.isEmpty()) {
               // TODO possible to pop an empty list
-              def testSuite = ossTestSuites.pop()
+              def testSuite
+              try {
+                testSuite = ossTestSuites.pop()
+              } catch (ex) {
+                continue
+              }
               
               def runTests = {
-                cStage("oss-ciGroup-${testSuite}") {
+                phase("oss-ciGroup-${testSuite}") {
                   withTestReporter {
                     withEnv """
                       set -e
@@ -675,7 +631,7 @@ def root = rootStage(this) {
 
       def configPaths = primaryConfigPaths + (xpackSuites.keySet().findAll { it != "test/functional/config.js" })
 
-      cStage("xpack-testRunner ${primaryConfigPaths}") {
+      phase("xpack-testRunner ${primaryConfigPaths}") {
         // TODO need to move 'Ensuring all functional tests are in a ciGroup' to before the build
 
         if (!defaultKibanaBuildComplete) {
@@ -683,7 +639,7 @@ def root = rootStage(this) {
           waitTil { defaultKibanaBuildComplete }
         }
 
-        node('linux && immutable && tests-large') {
+        node('testrunner-large') {
           skipDefaultCheckout()
 
           env.HOME = env.JENKINS_HOME
@@ -693,7 +649,7 @@ def root = rootStage(this) {
             waitTil { defaultKibanaBuildUploaded }
           }
 
-          cStage('Download archive') {
+          phase('Download archive') {
             step([
               $class: 'DownloadStep',
               credentialsId: 'kibana-ci-gcs-plugin',
@@ -702,12 +658,12 @@ def root = rootStage(this) {
             ])
           }
 
-          cStage('Extract archive') {
+          phase('Extract archive') {
             bash "tar -xzf workspaces/latest/${defaultWorkspaceArchiveFilename}"
             bash 'rm -rf /var/lib/jenkins/.kibana/node && mv var/lib/jenkins/.kibana/node /var/lib/jenkins/.kibana/'
           }
 
-          cStage('Extract Kibana') {
+          phase('Extract Kibana') {
             withEnv """
               set -e
               export TEST_BROWSER_HEADLESS=1
@@ -731,7 +687,7 @@ def root = rootStage(this) {
             
             nextWorker++
 
-            cStage('Copy Kibana') {
+            phase('Copy Kibana') {
               withEnv """
                 installDir="\$PARENT_DIR/install/kibana"
                 destDir=\${installDir}-${workerNumber}
@@ -746,12 +702,18 @@ def root = rootStage(this) {
 
             configPaths.each { configPath ->
               while(!xpackSuites[configPath].isEmpty()) {
-                def testSuites = [xpackSuites[configPath].pop()].flatten()
+                def testSuites
+
+                try {
+                  testSuites = [xpackSuites[configPath].pop()].flatten()
+                } catch (ex) {
+                  continue;
+                }
 
                 if (configPath != lastConfigPath) {
                   lastConfigPath = configPath
 
-                  cStage('Launch Kibana/ES') {
+                  phase('Launch Kibana/ES') {
                     withEnv """
                       cd "\$XPACK_DIR"
 
@@ -779,7 +741,7 @@ def root = rootStage(this) {
                 }
 
                 def runTests = {
-                  cStage("${workerNumber}: " + testSuites.join(", ")) {
+                  phase("${workerNumber}: " + testSuites.join(", ")) {
                     withTestReporter {
                       def tagArgs = testSuites.collect { "--include-tag '${it}'" }.join(" ")
 
@@ -808,17 +770,17 @@ def root = rootStage(this) {
                 try {
                   runTests()
                 } catch (ex) {
-                  print "Error during xpack test suite: ${testSuite}"
+                  print "Error during xpack test suites: ${testSuites.join(", ")}"
                   print ex.toString()
 
                   try {
                     runTests()
-                    unstable "xpack test succeeded on second attempt, considering flaky: ${testSuite}"
-                    flakyTests << [type: "xpack", suite: testSuite]
+                    unstable "xpack test succeeded on second attempt, considering flaky: ${testSuites.join(", ")}"
+                    flakyTests << [type: "xpack", suite: testSuites]
                   } catch(innerException) {
-                    print "Error during xpack test suite: ${testSuite}"
+                    print "Error during xpack test suite: ${testSuites.join(", ")}"
                     print innerException.toString()
-                    failedTests << [type: "xpack", suite: testSuite]
+                    failedTests << [type: "xpack", suite: testSuites]
                   }
                 }
               }
@@ -848,13 +810,13 @@ def root = rootStage(this) {
 
       parallel([
         checkout: {
-          cStage('Checkout') {
+          phase('Checkout') {
             def scmVars = checkout scm
             env.GIT_BRANCH = scmVars.GIT_BRANCH
           }
         },
         cache: {
-          cStage('Bootstrap cache') {
+          phase('Bootstrap cache') {
             bash '''
               targetBranch="master"
               bootstrapCache="$HOME/.kibana/bootstrap_cache/$targetBranch.tar"
@@ -869,7 +831,7 @@ def root = rootStage(this) {
               fi
             '''
           }
-          // cStage('Download archive') {
+          // phase('Download archive') {
           //   step([
           //     $class: 'DownloadStep',
           //     credentialsId: 'kibana-ci-gcs-plugin',
@@ -881,23 +843,23 @@ def root = rootStage(this) {
       ])
 
       dir('./kibana') {
-        // cStage('Extract archive') {
+        // phase('Extract archive') {
         //   bash "tar -xzf ../workspaces/latest/${workspaceArchiveFilename}"
         //   bash 'rm -rf /var/lib/jenkins/.kibana/node && mv var/lib/jenkins/.kibana/node /var/lib/jenkins/.kibana/'
         //   bash 'git reset --hard' # TODO account for .git itself
         // }
 
-        cStage('Move bootstrap-cache') {
+        phase('Move bootstrap-cache') {
           bash 'cp -aTl ../bootstrap-cache/ ./'
         }
         
-        cStage('setup.sh') {
+        phase('setup.sh') {
           bash 'source src/dev/ci_setup/setup.sh'
         }
 
-        cStage('Sibling ES') {
+        phase('Sibling ES') {
           bash 'rm -rf ../elasticsearch'
-          bash 'source src/dev/ci_setup/setup_docker.sh; source src/dev/ci_setup/checkout_sibling_es.sh'
+          withEnv 'source src/dev/ci_setup/checkout_sibling_es.sh'
         }
 
         closure()
@@ -909,18 +871,18 @@ def root = rootStage(this) {
     if (!RUN_OSS || ossKibanaBuildComplete) { return }
 
     withBootstrappedWorker {
-      cStage('Build OSS Kibana') {
-        cStage('Build OSS Kibana') {
+      phase('Build OSS Kibana') {
+        phase('Build OSS Kibana') {
           withEnv 'node scripts/build --debug --oss'
         }
 
         ossKibanaBuildComplete = true
 
-        cStage('Archive workspace') {
+        phase('Archive workspace') {
           bash "touch ${ossWorkspaceArchiveFilename} && tar -czf ${ossWorkspaceArchiveFilename} --exclude=${ossWorkspaceArchiveFilename} . /var/lib/jenkins/.kibana/node"
         }
 
-        cStage('Upload workspace') {
+        phase('Upload workspace') {
           step([
             $class: 'ClassicUploadStep',
             credentialsId: 'kibana-ci-gcs-plugin',
@@ -938,18 +900,18 @@ def root = rootStage(this) {
     if (!RUN_DEFAULT || defaultKibanaBuildComplete) { return }
 
     withBootstrappedWorker {
-      cStage('Build Default Kibana') {
-        cStage('Build Default Kibana') {
+      phase('Build Default Kibana') {
+        phase('Build Default Kibana') {
           withEnv 'node scripts/build --debug --no-oss'
         }
 
         defaultKibanaBuildComplete = true
 
-        cStage('Archive workspace') {
+        phase('Archive workspace') {
           bash "touch ${defaultWorkspaceArchiveFilename} && tar -czf ${defaultWorkspaceArchiveFilename} --exclude=${defaultWorkspaceArchiveFilename} . /var/lib/jenkins/.kibana/node"
         }
 
-        cStage('Upload workspace') {
+        phase('Upload workspace') {
           step([
             $class: 'ClassicUploadStep',
             credentialsId: 'kibana-ci-gcs-plugin',
@@ -963,107 +925,118 @@ def root = rootStage(this) {
     }
   }
 
-  timestamps {
-    ansiColor('xterm') {
-      try {
-        parallel([
-          'Status': {
-            // Update status of job, etc in a loop?
-          },
-          'Build OSS Kibana': { buildOssKibana() },
-          'oss-testRunner1': ossCiGroupRunner(),
-          'oss-testRunner2': ossCiGroupRunner(),
-          'oss-testRunner3': ossCiGroupRunner(),
-          'Build Default Kibana': { buildDefaultKibana() },
-          'xpack-testRunner1': xpackCiGroupRunner(["test/reporting/configs/chromium_api.js", "test/reporting/configs/chromium_functional.js"]),
-          'xpack-testRunner2-1': xpackCiGroupRunner(["test/functional/config.js"]),
-          'xpack-testRunner2-2': xpackCiGroupRunner(["test/functional/config.js"]),
-          'xpack-testRunner2-3': xpackCiGroupRunner(["test/functional/config.js"]),
-          'xpack-testRunner3': xpackCiGroupRunner([
-            "test/api_integration/config_security_basic.js",
-            "test/plugin_api_integration/config.js",
-            "test/kerberos_api_integration/config.ts",
-            "test/saml_api_integration/config.js",
-            "test/token_api_integration/config.js",
-            "test/oidc_api_integration/config.ts",
-            "test/oidc_api_integration/implicit_flow.config.ts",
-            "test/spaces_api_integration/spaces_only/config.ts",
-            "test/ui_capabilities/security_only/config.ts",
-            "test/upgrade_assistant_integration/config.js",
-          ]),
-          'xpack-testRunner4': xpackCiGroupRunner([
-            "test/api_integration/config.js",
-            "test/alerting_api_integration/config_security_enabled.js",
-            "test/spaces_api_integration/security_and_spaces/config_trial.ts",
-            "test/saved_object_api_integration/security_and_spaces/config_trial.ts",
-            "test/saved_object_api_integration/security_and_spaces/config_trial.ts",
-            "test/saved_object_api_integration/security_and_spaces/config_basic.ts",
-            "test/saved_object_api_integration/security_only/config_basic.ts",
-          ]),
-          // 'oss-intake': {
-          //   withBootstrappedWorker {
-          //     stage('OSS Intake') {
-          //       withTestReporter {
-          //         withEnv 'export TEST_BROWSER_HEADLESS=1; "$(FORCE_COLOR=0 yarn bin)/grunt" jenkins:unit --dev'
-          //       }
-          //     }
-          //   }
-          // },
-          // 'default-intake': {
-          //   withBootstrappedWorker {
-          //     stage('Default Intake') {
-          //       withTestReporter {
-          //         withEnv '''
-          //           export TEST_BROWSER_HEADLESS=1
+  node('flyweight') {
+    withVaultSecret(secret: 'secret/kibana-issues/dev/kibanamachine', secret_field: 'github_token', variable_name: 'GITHUB_TOKEN') {
+      withVaultSecret(secret: 'secret/kibana-issues/dev/kibanamachine-reporter', secret_field: 'value', variable_name: 'KIBANA_CI_REPORTER_KEY') {
+        withVaultSecret(secret: 'secret/kibana-issues/dev/percy', secret_field: 'value', variable_name: 'PERCY_TOKEN') {
+          timestamps {
+            ansiColor('xterm') {
+              try {
+                parallel([
+                  'Status': {
+                    // Update status of job, etc in a loop?
+                  },
+                  'Build OSS Kibana': { buildOssKibana() },
+                  'oss-testRunner1': ossCiGroupRunner(),
+                  'oss-testRunner2': ossCiGroupRunner(),
+                  'oss-testRunner3': ossCiGroupRunner(),
+                  'Build Default Kibana': { buildDefaultKibana() },
+                  'xpack-testRunner1': xpackCiGroupRunner(["test/reporting/configs/chromium_api.js", "test/reporting/configs/chromium_functional.js"]),
+                  'xpack-testRunner2-1': xpackCiGroupRunner(["test/functional/config.js"]),
+                  'xpack-testRunner2-2': xpackCiGroupRunner(["test/functional/config.js"]),
+                  'xpack-testRunner2-3': xpackCiGroupRunner(["test/functional/config.js"]),
+                  'xpack-testRunner3': xpackCiGroupRunner([
+                    "test/api_integration/config_security_basic.js",
+                    "test/plugin_api_integration/config.js",
+                    "test/kerberos_api_integration/config.ts",
+                    "test/saml_api_integration/config.js",
+                    "test/token_api_integration/config.js",
+                    "test/oidc_api_integration/config.ts",
+                    "test/oidc_api_integration/implicit_flow.config.ts",
+                    "test/spaces_api_integration/spaces_only/config.ts",
+                    "test/ui_capabilities/security_only/config.ts",
+                    "test/upgrade_assistant_integration/config.js",
+                  ]),
+                  'xpack-testRunner4': xpackCiGroupRunner([
+                    "test/api_integration/config.js",
+                    "test/alerting_api_integration/config_security_enabled.js",
+                    "test/spaces_api_integration/security_and_spaces/config_trial.ts",
+                    "test/saved_object_api_integration/security_and_spaces/config_trial.ts",
+                    "test/saved_object_api_integration/security_and_spaces/config_trial.ts",
+                    "test/saved_object_api_integration/security_and_spaces/config_basic.ts",
+                    "test/saved_object_api_integration/security_only/config_basic.ts",
+                  ]),
+                  // 'oss-intake': {
+                  //   withBootstrappedWorker {
+                  //     stage('OSS Intake') {
+                  //       withTestReporter {
+                  //         withEnv 'export TEST_BROWSER_HEADLESS=1; "$(FORCE_COLOR=0 yarn bin)/grunt" jenkins:unit --dev'
+                  //       }
+                  //     }
+                  //   }
+                  // },
+                  // 'default-intake': {
+                  //   withBootstrappedWorker {
+                  //     stage('Default Intake') {
+                  //       withTestReporter {
+                  //         withEnv '''
+                  //           export TEST_BROWSER_HEADLESS=1
 
-          //           echo " -> Running mocha tests"
-          //           cd "$XPACK_DIR"
-          //           checks-reporter-with-killswitch "X-Pack Mocha" yarn test
-          //           echo ""
-          //           echo ""
+                  //           echo " -> Running mocha tests"
+                  //           cd "$XPACK_DIR"
+                  //           checks-reporter-with-killswitch "X-Pack Mocha" yarn test
+                  //           echo ""
+                  //           echo ""
 
-          //           echo " -> Running jest tests"
-          //           cd "$XPACK_DIR"
-          //           checks-reporter-with-killswitch "X-Pack Jest" node scripts/jest --ci --verbose
-          //           echo ""
-          //           echo ""
+                  //           echo " -> Running jest tests"
+                  //           cd "$XPACK_DIR"
+                  //           checks-reporter-with-killswitch "X-Pack Jest" node scripts/jest --ci --verbose
+                  //           echo ""
+                  //           echo ""
 
-          //           echo " -> Running SIEM cyclic dependency test"
-          //           cd "$XPACK_DIR"
-          //           checks-reporter-with-killswitch "X-Pack SIEM cyclic dependency test" node legacy/plugins/siem/scripts/check_circular_deps
-          //           echo ""
-          //           echo ""
+                  //           echo " -> Running SIEM cyclic dependency test"
+                  //           cd "$XPACK_DIR"
+                  //           checks-reporter-with-killswitch "X-Pack SIEM cyclic dependency test" node legacy/plugins/siem/scripts/check_circular_deps
+                  //           echo ""
+                  //           echo ""
 
-          //           echo " -> Running jest contracts tests"
-          //           cd "$XPACK_DIR"
-          //           SLAPSHOT_ONLINE=true CONTRACT_ONLINE=true node scripts/jest_contract.js --ci --verbose
-          //           echo ""
-          //           echo ""
-          //         '''
-          //       }
-          //     }
-          //   }
-          // },
-        ])
-      } finally {
-        print "Failed Tests:"
-        print failedTests
+                  //           echo " -> Running jest contracts tests"
+                  //           cd "$XPACK_DIR"
+                  //           SLAPSHOT_ONLINE=true CONTRACT_ONLINE=true node scripts/jest_contract.js --ci --verbose
+                  //           echo ""
+                  //           echo ""
+                  //         '''
+                  //       }
+                  //     }
+                  //   }
+                  // },
+                ])
+              } finally {
+                print "Failed Tests:"
+                print failedTests
 
-        print "Flaky Tests:"
-        print flakyTests
+                print "Flaky Tests:"
+                print flakyTests
+              }
+            }
+          }
+        }
       }
     }
   }
 }
 
-printStages(root)
+// printPhases(root)
 
 def bash(script) {
   sh "#!/bin/bash -x\n${script}"
 }
 
 def withEnv(script){
-  bash '''set -e
+  withCredentials([
+    string(credentialsId: 'vault-addr', variable: 'VAULT_ADDR'),
+  ]) {
+    bash '''set -e
 
 dir="$(pwd)"
 cacheDir="${CACHE_DIR:-"$HOME/.kibana"}"
@@ -1126,7 +1099,7 @@ export PATH="$PATH:$yarnGlobalDir"
 export GECKODRIVER_CDNURL="https://us-central1-elastic-kibana-184716.cloudfunctions.net/kibana-ci-proxy-cache"
 export CHROMEDRIVER_CDNURL="https://us-central1-elastic-kibana-184716.cloudfunctions.net/kibana-ci-proxy-cache"
 
-export CHECKS_REPORTER_ACTIVE=false
+export CHECKS_REPORTER_ACTIVE=true
 
 function checks-reporter-with-killswitch() {
   if [ "$CHECKS_REPORTER_ACTIVE" == "true" ] ; then
@@ -1138,6 +1111,7 @@ function checks-reporter-with-killswitch() {
 }
 
 ''' + script
+  }
 }
 
 def withTestReporter(closure) {
