@@ -79,6 +79,8 @@ def jobRunner(name) {
   }
 }
 
+// TODO what should happen if GCS, Junit, or email publishing fails? Unstable build? Failed build?
+
 def uploadGcsArtifact(jobName, pattern) {
   def storageLocation = "gs://kibana-ci-artifacts/jobs/pipeline-test/${BUILD_NUMBER}/${jobName}"
 
