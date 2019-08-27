@@ -22,6 +22,8 @@ def waitTil(conditionClosure) {
   }
 }
 
+properties([durabilityHint('PERFORMANCE_OPTIMIZED')])
+
 def ossTestSuites = [
   "api_integration.apis.elasticsearch",
   "api_integration.apis.general.cookies",
