@@ -523,17 +523,6 @@ def rootStage(_, closure) {
   cStage('Root', closure)
 }
 
-// Quick test debugging permission errors, TODO: remove
-node('flyweight') {
-  sh 'echo 1 > test'
-  step([
-    $class: 'ClassicUploadStep',
-    credentialsId: 'kibana-ci-gcs-plugin',
-    bucket: "gs://kibana-pipeline-testing/workspaces/test",
-    pattern: 'test',
-  ])
-}
-
 // TODO wrap rootStage in a try{} and print info
 def root = rootStage(this) {
   def ossCiGroupRunner = { additionalScript='' ->
