@@ -909,7 +909,7 @@ def root = rootStage(this) {
 
         cStage('Sibling ES') {
           bash 'rm -rf ../elasticsearch'
-          bash 'source src/dev/ci_setup/setup_docker.sh; source src/dev/ci_setup/checkout_sibling_es.sh'
+          withEnv 'source src/dev/ci_setup/checkout_sibling_es.sh'
         }
 
         closure()
