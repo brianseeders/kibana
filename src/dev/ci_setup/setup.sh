@@ -7,7 +7,9 @@ source src/dev/ci_setup/setup_env.sh true
 echo " -- KIBANA_DIR='$KIBANA_DIR'"
 echo " -- XPACK_DIR='$XPACK_DIR'"
 echo " -- PARENT_DIR='$PARENT_DIR'"
-echo " -- KIBANA_PKG_BRANCH='$KIBANA_PKG_BRANCH'"
+
+# uncomment to pin to a snapshot from: https://artifacts-api.elastic.co/v1/branches/{branch}/builds
+# export TEST_ES_SNAPSHOT_VERSION=8.0.0-5480a616
 echo " -- TEST_ES_SNAPSHOT_VERSION='$TEST_ES_SNAPSHOT_VERSION'"
 
 ###
@@ -26,20 +28,29 @@ if [ "$GIT_CHANGES" ]; then
   exit 1
 fi
 
-###
-### rebuild kbn-pm distributable to ensure it's not out of date
-###
-echo " -- building kbn-pm distributable"
-yarn kbn run build -i @kbn/pm
+  if [ "$changes" != "" ] && [ "$diff" == "" ]; then
+    echo ""
+    echo -e "${RED}WARNING: hard reseting repo to discard un-diffable changes:\n"
+    echo ""
+    echo "$changes"
+    echo ""
+    git reset --hard;
+  fi
+}
 
 ###
-### verify no git modifications
+### install dependencies
 ###
-GIT_CHANGES="$(git ls-files --modified)"
-if [ "$GIT_CHANGES" ]; then
-  echo -e "\n${RED}ERROR: 'yarn kbn run build -i @kbn/pm' caused changes to the following files:${C_RESET}\n"
-  echo -e "$GIT_CHANGES\n"
-  exit 1
+echo " -- installing node.js dependencies"
+verifyRunWithoutChanges yarn kbn bootstrap --prefer-offline
+
+# skip kbn-pm build check on windows, installed packages are slightly different so module ids are slightly different
+if [ "$OS" != "win" ]; then
+  ###
+  ### rebuild kbn-pm distributable to ensure it's not out of date
+  ###
+  echo " -- building kbn-pm distributable"
+  verifyRunWithoutChanges yarn kbn run build -i @kbn/pm
 fi
 
 ###
