@@ -23,6 +23,11 @@ C_RESET='\033[0m' # Reset color
 export FORCE_COLOR=1
 
 ###
+### Disable git automatic lineend handling
+###
+git config --global core.autocrlf false;
+
+###
 ### check that we seem to be in a kibana project
 ###
 if [ -f "$dir/package.json" ] && [ -f "$dir/.node-version" ]; then
