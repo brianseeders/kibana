@@ -90,16 +90,20 @@ def getPostBuildWorker(name, closure) {
     def esPort = "61${workerNumber}2"
     def esTransportPort = "61${workerNumber}3"
 
-    withEnv([
-      "CI_WORKER_NUMBER=${workerNumber}",
-      "TEST_KIBANA_HOST=localhost",
-      "TEST_KIBANA_PORT=${kibanaPort}",
-      "TEST_KIBANA_URL=http://elastic:changeme@localhost:${kibanaPort}",
-      "TEST_ES_URL=http://elastic:changeme@localhost:${esPort}",
-      "TEST_ES_TRANSPORT_PORT=${esTransportPort}",
-      "IS_PIPELINE_JOB=1",
-    ]) {
-      closure()
+    dir("${WORKSPACE}/kibana-${workerNumber}") {
+      sh "mkdir target; ln -s ${WORKSPACE}/kibana/* ./"
+
+      withEnv([
+        "CI_WORKER_NUMBER=${workerNumber}",
+        "TEST_KIBANA_HOST=localhost",
+        "TEST_KIBANA_PORT=${kibanaPort}",
+        "TEST_KIBANA_URL=http://elastic:changeme@localhost:${kibanaPort}",
+        "TEST_ES_URL=http://elastic:changeme@localhost:${esPort}",
+        "TEST_ES_TRANSPORT_PORT=${esTransportPort}",
+        "IS_PIPELINE_JOB=1",
+      ]) {
+        closure()
+      }
     }
   }
 }
@@ -244,7 +248,7 @@ def sendKibanaMail() {
 }
 
 def runbld(script) {
-  sh '#!/usr/local/bin/runbld\n' + script
+  sh "/usr/local/bin/runbld -d '${pwd()}' " + script
 }
 
 def bash(script) {
