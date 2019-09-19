@@ -68,8 +68,6 @@ COPY --chown=kibana:kibana . /app
 
 RUN yarn kbn bootstrap --frozen-lockfile --prefer-offline && node scripts/build --debug --oss
 
-RUN JOB=kibana-ciGroup1 CI_GROUP=1 ./test/scripts/jenkins_ci_group.sh
-
 # RUN date && [ -f "/home/kibana/node_modules.tar.gz" ] && bsdtar -xzf /home/kibana/node_modules.tar.gz; \
 #   date && [ -f "/home/kibana/yarn.tar.gz" ] && bsdtar -xzf /home/kibana/yarn.tar.gz -C /; \
 #   date && yarn kbn bootstrap --frozen-lockfile --prefer-offline && date \
@@ -84,5 +82,6 @@ RUN JOB=kibana-ciGroup1 CI_GROUP=1 ./test/scripts/jenkins_ci_group.sh
 # TODO remove .git? not sure if it's needed
 # TODO cache ES efficiently
 
-ENTRYPOINT ["/usr/local/bin/dumb-init", "--", "yarn"]
-CMD ["start"]
+ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
+
+CMD ["yarn", "start"]

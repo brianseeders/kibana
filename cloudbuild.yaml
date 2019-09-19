@@ -1,0 +1,21 @@
+# Name
+# gcr.io/cloud-builders/docker
+# Arguments
+# build -t gcr.io/elastic-kibana-184716/github.com/brianseeders/kibana:0fc90c3 .
+# Directory
+# /workspace/
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build -t gcr.io/elastic-kibana-184716/github.com/brianseeders/kibana:$SHORT_SHA .
+    id: build
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - run -e JOB=kibana-ciGroup1 -e CI_GROUP=1 gcr.io/elastic-kibana-184716/github.com/brianseeders/kibana:$SHORT_SHA .ci/run.sh
+    waitFor: ['build']
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - run -e JOB=kibana-ciGroup2 -e CI_GROUP=2 gcr.io/elastic-kibana-184716/github.com/brianseeders/kibana:$SHORT_SHA .ci/run.sh
+    waitFor: ['build']
