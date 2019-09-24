@@ -107,7 +107,7 @@ export function resolveImportErrorsTestSuiteFactory(
 
     describeFn(description, () => {
       before(() => esArchiver.load('saved_objects/spaces'));
-      after(() => esArchiver.unload('saved_objects/spaces'));
+      // after(() => esArchiver.unload('saved_objects/spaces'));
 
       it(`should return ${tests.default.statusCode}`, async () => {
         const data = createImportData(spaceId);

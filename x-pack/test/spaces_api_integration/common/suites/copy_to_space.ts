@@ -373,7 +373,7 @@ export function copyToSpaceTestSuiteFactory(
       });
 
       beforeEach(() => esArchiver.load('saved_objects/spaces'));
-      afterEach(() => esArchiver.unload('saved_objects/spaces'));
+      // afterEach(() => esArchiver.unload('saved_objects/spaces'));
 
       it(`should return ${tests.noConflictsWithoutReferences.statusCode} when copying to space without conflicts or references`, async () => {
         const destination = getDestinationWithoutConflicts();

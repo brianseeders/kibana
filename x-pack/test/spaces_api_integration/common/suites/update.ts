@@ -69,7 +69,7 @@ export function updateTestSuiteFactory(esArchiver: any, supertest: SuperTest<any
   ) => {
     describeFn(description, () => {
       before(() => esArchiver.load('saved_objects/spaces'));
-      after(() => esArchiver.unload('saved_objects/spaces'));
+      // after(() => esArchiver.unload('saved_objects/spaces'));
 
       describe('space_1', () => {
         it(`should return ${tests.alreadyExists.statusCode}`, async () => {

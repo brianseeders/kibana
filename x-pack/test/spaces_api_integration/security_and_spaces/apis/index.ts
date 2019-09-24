@@ -19,6 +19,8 @@ export default function({ loadTestFile, getService }: TestInvoker) {
       await createUsersAndRoles(es, supertest);
     });
 
+    after(() => esArchiver.unload('saved_objects/spaces'));
+
     loadTestFile(require.resolve('./copy_to_space'));
     loadTestFile(require.resolve('./resolve_copy_to_space_conflicts'));
     loadTestFile(require.resolve('./create'));

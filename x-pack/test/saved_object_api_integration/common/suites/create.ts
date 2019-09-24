@@ -141,7 +141,7 @@ export function createTestSuiteFactory(es: any, esArchiver: any, supertest: Supe
     const { user = {}, spaceId = DEFAULT_SPACE_ID, tests } = definition;
     describeFn(description, () => {
       before(() => esArchiver.load('saved_objects/spaces'));
-      after(() => esArchiver.unload('saved_objects/spaces'));
+      // after(() => esArchiver.unload('saved_objects/spaces'));
       it(`should return ${tests.spaceAware.statusCode} for a space-aware type`, async () => {
         await supertest
           .post(`${getUrlPrefix(spaceId)}/api/saved_objects/${spaceAwareType}`)

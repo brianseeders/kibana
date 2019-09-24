@@ -16,6 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import { execSync } from 'child_process';
+
+const exec = (command) => {
+  // console.log(command);
+  // console.log('' + execSync(command));
+  return;
+  execSync(command);
+};
+
+const INDICES = '.kibana*,-.kibana_task_manager*';
+// const INDICES = '*,-.kibana_task_manager*,-.security*,-.apm*,-.tasks';
+// const INDICES = '*,-.kibana_task_manager*,-.apm*,-.tasks';
 
 import {
   saveAction,
@@ -32,6 +44,28 @@ export class EsArchiver {
     this.dataDir = dataDir;
     this.log = log;
     this.kibanaUrl = kibanaUrl;
+    this.time = (new Date()).getTime();
+    this.snapshots = {};
+
+    try {
+      exec(`curl -sSX PUT "http://elastic:changeme@127.0.0.1:9220/_snapshot/my_backup?pretty" -H 'Content-Type: application/json' -d'
+        {
+          "type": "fs",
+          "settings": {
+            "location": "/Users/bseeders/es_snap"
+          }
+        }
+        '
+      `);
+    } catch(ex) {}
+  }
+
+  preSnapshot(name) {
+    return `pre-${this.time}-${name.replace('/', '_')}`;
+  }
+
+  postSnapshot(name) {
+    return `post-${this.time}-${name.replace('/', '_')}`;
   }
 
   /**
@@ -67,7 +101,26 @@ export class EsArchiver {
   async load(name, options = {}) {
     const { skipExisting } = options;
 
-    return await loadAction({
+    if (this.snapshots[name]) {
+      // restore
+      exec(`curl -sSX DELETE 'http://elastic:changeme@127.0.0.1:9220/${INDICES}/?pretty'`);
+      exec(`curl -sSX POST "http://elastic:changeme@127.0.0.1:9220/_snapshot/my_backup/${this.postSnapshot(name)}/_restore?wait_for_completion=true&pretty" -H 'Content-Type: application/json' -d'
+      {
+        "include_global_state": true
+      }
+      '
+      `);
+
+      return;
+    }
+
+    exec(`curl -sSX PUT "http://elastic:changeme@127.0.0.1:9220/_snapshot/my_backup/${this.preSnapshot(name)}?wait_for_completion=true&pretty" -H 'Content-Type: application/json' -d'
+      {
+        "indices": "${INDICES}",
+        "include_global_state": true
+      }'`);
+
+    await loadAction({
       name,
       skipExisting: !!skipExisting,
       client: this.client,
@@ -75,6 +128,14 @@ export class EsArchiver {
       log: this.log,
       kibanaUrl: this.kibanaUrl,
     });
+
+    exec(`curl -sSX PUT "http://elastic:changeme@127.0.0.1:9220/_snapshot/my_backup/${this.postSnapshot(name)}?wait_for_completion=true&pretty" -H 'Content-Type: application/json' -d'
+      {
+        "indices": "${INDICES}",
+        "include_global_state": true
+      }'`);
+
+    // this.snapshots[name] = true;
   }
 
   /**
@@ -84,6 +145,17 @@ export class EsArchiver {
    *  @return Promise<Stats>
    */
   async unload(name) {
+    if (this.snapshots[name]) {
+      exec(`curl -sSX DELETE 'http://elastic:changeme@127.0.0.1:9220/${INDICES}/?pretty'`);
+      exec(`curl -sSX POST "http://elastic:changeme@127.0.0.1:9220/_snapshot/my_backup/${this.preSnapshot(name)}/_restore?wait_for_completion=true&pretty" -H 'Content-Type: application/json' -d'
+      {
+        "include_global_state": true
+      }
+      '
+      `);
+      return;
+    }
+
     return await unloadAction({
       name,
       client: this.client,

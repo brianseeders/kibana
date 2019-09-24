@@ -105,7 +105,7 @@ export class ToolingLogTextWriter implements Writer {
         lineIndent += PREFIX_INDENT;
       }
 
-      this.writeTo.write(`${lineIndent}${line}\n`);
+      this.writeTo.write(`${(new Date()).toJSON()}${lineIndent}${line}\n`);
     });
 
     return true;

@@ -86,6 +86,7 @@ export function createEsTestCluster(options = {}) {
       await cluster.start(installPath, {
         password: config.password,
         esArgs: [
+          `path.repo=/Users/bseeders/es_snap`,
           `cluster.name=${clusterName}`,
           `http.port=${port}`,
           'discovery.type=single-node',

@@ -273,7 +273,7 @@ export function resolveCopyToSpaceConflictsSuite(
       });
 
       beforeEach(() => esArchiver.load('saved_objects/spaces'));
-      afterEach(() => esArchiver.unload('saved_objects/spaces'));
+      // afterEach(() => esArchiver.unload('saved_objects/spaces'));
 
       it(`should return ${tests.withReferencesNotOverwriting.statusCode} when not overwriting, with references`, async () => {
         const destination = getDestinationSpace(spaceId);

@@ -10,6 +10,7 @@ import { FtrProviderContext } from '../../common/ftr_provider_context';
 export default function({ getService, loadTestFile }: FtrProviderContext) {
   const es = getService('es');
   const supertest = getService('supertest');
+  const esArchiver = getService('esArchiver');
 
   describe('saved objects security and spaces enabled', function() {
     this.tags('ciGroup5');
@@ -17,6 +18,8 @@ export default function({ getService, loadTestFile }: FtrProviderContext) {
     before(async () => {
       await createUsersAndRoles(es, supertest);
     });
+
+    after(() => esArchiver.unload('saved_objects/spaces'));
 
     loadTestFile(require.resolve('./bulk_create'));
     loadTestFile(require.resolve('./bulk_get'));

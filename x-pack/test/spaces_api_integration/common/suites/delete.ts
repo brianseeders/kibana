@@ -170,7 +170,7 @@ export function deleteTestSuiteFactory(es: any, esArchiver: any, supertest: Supe
           .auth(user.username, user.password)
           .expect(200);
       });
-      after(() => esArchiver.unload('saved_objects/spaces'));
+      // after(() => esArchiver.unload('saved_objects/spaces'));
 
       it(`should return ${tests.exists.statusCode}`, async () => {
         return supertest

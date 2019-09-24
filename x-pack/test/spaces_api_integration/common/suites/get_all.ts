@@ -68,7 +68,7 @@ export function getAllTestSuiteFactory(esArchiver: any, supertest: SuperTest<any
   ) => {
     describeFn(description, () => {
       before(() => esArchiver.load('saved_objects/spaces'));
-      after(() => esArchiver.unload('saved_objects/spaces'));
+      // after(() => esArchiver.unload('saved_objects/spaces'));
 
       it(`should return ${tests.exists.statusCode}`, async () => {
         return supertest

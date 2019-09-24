@@ -97,7 +97,7 @@ export function exportTestSuiteFactory(esArchiver: any, supertest: SuperTest<any
 
     describeFn(description, () => {
       before(() => esArchiver.load('saved_objects/spaces'));
-      after(() => esArchiver.unload('saved_objects/spaces'));
+      // after(() => esArchiver.unload('saved_objects/spaces'));
 
       it(`space aware type should return ${tests.spaceAwareType.statusCode} with ${tests.spaceAwareType.description} when querying by type`, async () => {
         await supertest

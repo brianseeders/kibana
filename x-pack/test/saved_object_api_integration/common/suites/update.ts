@@ -124,7 +124,7 @@ export function updateTestSuiteFactory(esArchiver: any, supertest: SuperTest<any
 
     describeFn(description, () => {
       before(() => esArchiver.load('saved_objects/spaces'));
-      after(() => esArchiver.unload('saved_objects/spaces'));
+      // after(() => esArchiver.unload('saved_objects/spaces'));
       it(`should return ${tests.spaceAware.statusCode} for a space-aware doc`, async () => {
         await supertest
           .put(

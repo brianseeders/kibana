@@ -122,7 +122,7 @@ export function findTestSuiteFactory(esArchiver: any, supertest: SuperTest<any>)
 
     describeFn(description, () => {
       before(() => esArchiver.load('saved_objects/spaces'));
-      after(() => esArchiver.unload('saved_objects/spaces'));
+      // after(() => esArchiver.unload('saved_objects/spaces'));
 
       it(`space aware type should return ${tests.spaceAwareType.statusCode} with ${tests.spaceAwareType.description}`, async () =>
         await supertest
