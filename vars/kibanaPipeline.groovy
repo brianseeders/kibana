@@ -155,7 +155,6 @@ def jobRunner(label, useRamDisk, closure) {
 
 def uploadGcsArtifact(workerName, pattern) {
   def storageLocation = "gs://kibana-ci-artifacts/jobs/${env.JOB_NAME}/${BUILD_NUMBER}/${workerName}" // TODO
-  // def storageLocation = "gs://kibana-pipeline-testing/jobs/pipeline-test/${BUILD_NUMBER}/${workerName}"
 
   googleStorageUpload(
     credentialsId: 'kibana-ci-gcs-plugin',
