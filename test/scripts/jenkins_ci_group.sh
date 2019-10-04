@@ -16,6 +16,7 @@ if [[ -z "$IS_PIPELINE_JOB" ]] ; then
 else
   installDir="$(realpath $PARENT_DIR/kibana/build/oss/kibana-*-SNAPSHOT-linux-x86_64)"
   destDir=${installDir}-${CI_WORKER_NUMBER}
+  rm -rf "$destDir" # If we run multiple times (like for flaky testing), we should start clean each time
   cp -R "$installDir" "$destDir"
 
   export KIBANA_INSTALL_DIR="$destDir"
