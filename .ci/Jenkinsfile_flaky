@@ -25,7 +25,8 @@ stage("Kibana Pipeline") {
     timestamps {
       ansiColor('xterm') {
         def agents = [:]
-        for(def agentNumber = 1; agentNumber <= agentCount; agentNumber++) {
+        for(def i = 1; i <= agentCount; i++) {
+          def agentNumber = i
           agents["agent-${agentNumber}"] = {
             catchError {
               kibanaPipeline.withWorkers('flaky-test-runner', {
