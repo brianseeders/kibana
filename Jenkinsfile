@@ -195,6 +195,7 @@ def jobRunner(label, closure) {
   node(label) {
 
     try {
+      sh 'mkdir -p /dev/shm/workspace'
       sh "sh -c 'rm -rf ${WORKSPACE}; ln -s /dev/shm/workspace ${WORKSPACE}'"
     } finally {}
 
