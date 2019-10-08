@@ -8,8 +8,8 @@ stage("Kibana Pipeline") { // This stage is just here to help the BlueOcean UI a
       ansiColor('xterm') {
         catchError {
           parallel([
-            'kibana-intake-agent': legacyJobRunner('kibana-intake'),
-            'x-pack-intake-agent': legacyJobRunner('x-pack-intake'),
+            // 'kibana-intake-agent': legacyJobRunner('kibana-intake'),
+            // 'x-pack-intake-agent': legacyJobRunner('x-pack-intake'),
             'kibana-oss-agent': withWorkers('kibana-oss-tests', { buildOss() }, [
               'oss-ciGroup1': getOssCiGroupWorker(1),
               'oss-ciGroup2': getOssCiGroupWorker(2),
@@ -17,8 +17,6 @@ stage("Kibana Pipeline") { // This stage is just here to help the BlueOcean UI a
               'oss-ciGroup4': getOssCiGroupWorker(4),
               'oss-ciGroup5': getOssCiGroupWorker(5),
               'oss-ciGroup6': getOssCiGroupWorker(6),
-            ]),
-            'kibana-oss-agent2': withWorkers('kibana-oss-tests2', { buildOss() }, [
               'oss-ciGroup7': getOssCiGroupWorker(7),
               'oss-ciGroup8': getOssCiGroupWorker(8),
               'oss-ciGroup9': getOssCiGroupWorker(9),
@@ -28,22 +26,20 @@ stage("Kibana Pipeline") { // This stage is just here to help the BlueOcean UI a
               'oss-firefoxSmoke': getPostBuildWorker('firefoxSmoke', { runbld './test/scripts/jenkins_firefox_smoke.sh' }),
               // 'oss-visualRegression': getPostBuildWorker('visualRegression', { runbld './test/scripts/jenkins_visual_regression.sh' }),
             ]),
-            'kibana-xpack-agent': withWorkers('kibana-xpack-tests', { buildXpack() }, [
-              'xpack-ciGroup1': getXpackCiGroupWorker(1),
-              'xpack-ciGroup2': getXpackCiGroupWorker(2),
-              'xpack-ciGroup3': getXpackCiGroupWorker(3),
-              'xpack-ciGroup4': getXpackCiGroupWorker(4),
-              'xpack-ciGroup5': getXpackCiGroupWorker(5),
-            ]),
-            'kibana-xpack-agent2': withWorkers('kibana-xpack-tests2', { buildXpack() }, [
-              'xpack-ciGroup6': getXpackCiGroupWorker(6),
-              'xpack-ciGroup7': getXpackCiGroupWorker(7),
-              'xpack-ciGroup8': getXpackCiGroupWorker(8),
-              'xpack-ciGroup9': getXpackCiGroupWorker(9),
-              'xpack-ciGroup10': getXpackCiGroupWorker(10),
-              'xpack-firefoxSmoke': getPostBuildWorker('xpack-firefoxSmoke', { runbld './test/scripts/jenkins_xpack_firefox_smoke.sh' }),
-              // 'xpack-visualRegression': getPostBuildWorker('xpack-visualRegression', { runbld './test/scripts/jenkins_xpack_visual_regression.sh' }),
-            ]),
+            // 'kibana-xpack-agent': withWorkers('kibana-xpack-tests', { buildXpack() }, [
+            //   'xpack-ciGroup1': getXpackCiGroupWorker(1),
+            //   'xpack-ciGroup2': getXpackCiGroupWorker(2),
+            //   'xpack-ciGroup3': getXpackCiGroupWorker(3),
+            //   'xpack-ciGroup4': getXpackCiGroupWorker(4),
+            //   'xpack-ciGroup5': getXpackCiGroupWorker(5),
+            //   'xpack-ciGroup6': getXpackCiGroupWorker(6),
+            //   'xpack-ciGroup7': getXpackCiGroupWorker(7),
+            //   'xpack-ciGroup8': getXpackCiGroupWorker(8),
+            //   'xpack-ciGroup9': getXpackCiGroupWorker(9),
+            //   'xpack-ciGroup10': getXpackCiGroupWorker(10),
+            //   'xpack-firefoxSmoke': getPostBuildWorker('xpack-firefoxSmoke', { runbld './test/scripts/jenkins_xpack_firefox_smoke.sh' }),
+            //   // 'xpack-visualRegression': getPostBuildWorker('xpack-visualRegression', { runbld './test/scripts/jenkins_xpack_visual_regression.sh' }),
+            // ]),
           ])
         }
         node('flyweight') {
@@ -174,6 +170,8 @@ def legacyJobRunner(name) {
 
 def jobRunner(label, closure) {
   node(label) {
+    input "Waiting"
+
     def scmVars = checkout scm
 
     withEnv([
