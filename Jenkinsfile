@@ -26,28 +26,51 @@ stage("Kibana Pipeline") { // This stage is just here to help the BlueOcean UI a
               'oss-firefoxSmoke': getPostBuildWorker('firefoxSmoke', { runbld './test/scripts/jenkins_firefox_smoke.sh' }),
               // 'oss-visualRegression': getPostBuildWorker('visualRegression', { runbld './test/scripts/jenkins_visual_regression.sh' }),
             ]),
-            // 'kibana-xpack-agent': withWorkers('kibana-xpack-tests', { buildXpack() }, [
-            //   'xpack-ciGroup1': getXpackCiGroupWorker(1),
-            //   'xpack-ciGroup2': getXpackCiGroupWorker(2),
-            //   'xpack-ciGroup3': getXpackCiGroupWorker(3),
-            //   'xpack-ciGroup4': getXpackCiGroupWorker(4),
-            //   'xpack-ciGroup5': getXpackCiGroupWorker(5),
-            //   'xpack-ciGroup6': getXpackCiGroupWorker(6),
-            //   'xpack-ciGroup7': getXpackCiGroupWorker(7),
-            //   'xpack-ciGroup8': getXpackCiGroupWorker(8),
-            //   'xpack-ciGroup9': getXpackCiGroupWorker(9),
-            //   'xpack-ciGroup10': getXpackCiGroupWorker(10),
-            //   'xpack-firefoxSmoke': getPostBuildWorker('xpack-firefoxSmoke', { runbld './test/scripts/jenkins_xpack_firefox_smoke.sh' }),
-            //   // 'xpack-visualRegression': getPostBuildWorker('xpack-visualRegression', { runbld './test/scripts/jenkins_xpack_visual_regression.sh' }),
-            // ]),
+            'kibana-oss-agent-2': withWorkers('kibana-oss-tests-2', { buildOss() }, [
+              'oss-ciGroup1': getOssCiGroupWorker(1),
+              'oss-ciGroup2': getOssCiGroupWorker(2),
+              'oss-ciGroup3': getOssCiGroupWorker(3),
+              'oss-ciGroup4': getOssCiGroupWorker(4),
+              'oss-ciGroup5': getOssCiGroupWorker(5),
+              'oss-ciGroup6': getOssCiGroupWorker(6),
+              'oss-ciGroup7': getOssCiGroupWorker(7),
+              'oss-ciGroup8': getOssCiGroupWorker(8),
+              'oss-ciGroup9': getOssCiGroupWorker(9),
+              'oss-ciGroup10': getOssCiGroupWorker(10),
+              'oss-ciGroup11': getOssCiGroupWorker(11),
+              'oss-ciGroup12': getOssCiGroupWorker(12),
+              'oss-firefoxSmoke': getPostBuildWorker('firefoxSmoke', { runbld './test/scripts/jenkins_firefox_smoke.sh' }),
+              // 'oss-visualRegression': getPostBuildWorker('visualRegression', { runbld './test/scripts/jenkins_visual_regression.sh' }),
+            ]),
+            'kibana-xpack-agent': withWorkers('kibana-xpack-tests', { buildXpack() }, [
+              'xpack-ciGroup1': getXpackCiGroupWorker(1),
+              'xpack-ciGroup2': getXpackCiGroupWorker(2),
+              'xpack-ciGroup3': getXpackCiGroupWorker(3),
+              'xpack-ciGroup4': getXpackCiGroupWorker(4),
+              'xpack-ciGroup5': getXpackCiGroupWorker(5),
+              'xpack-ciGroup6': getXpackCiGroupWorker(6),
+              'xpack-ciGroup7': getXpackCiGroupWorker(7),
+              'xpack-ciGroup8': getXpackCiGroupWorker(8),
+              'xpack-ciGroup9': getXpackCiGroupWorker(9),
+              'xpack-ciGroup10': getXpackCiGroupWorker(10),
+              'xpack-firefoxSmoke': getPostBuildWorker('xpack-firefoxSmoke', { runbld './test/scripts/jenkins_xpack_firefox_smoke.sh' }),
+              // 'xpack-visualRegression': getPostBuildWorker('xpack-visualRegression', { runbld './test/scripts/jenkins_xpack_visual_regression.sh' }),
+            ]),
+            'kibana-xpack-agent-2': withWorkers('kibana-xpack-tests-2', { buildXpack() }, [
+              'xpack-ciGroup1': getXpackCiGroupWorker(1),
+              'xpack-ciGroup2': getXpackCiGroupWorker(2),
+              'xpack-ciGroup3': getXpackCiGroupWorker(3),
+              'xpack-ciGroup4': getXpackCiGroupWorker(4),
+              'xpack-ciGroup5': getXpackCiGroupWorker(5),
+              'xpack-ciGroup6': getXpackCiGroupWorker(6),
+              'xpack-ciGroup7': getXpackCiGroupWorker(7),
+              'xpack-ciGroup8': getXpackCiGroupWorker(8),
+              'xpack-ciGroup9': getXpackCiGroupWorker(9),
+              'xpack-ciGroup10': getXpackCiGroupWorker(10),
+              'xpack-firefoxSmoke': getPostBuildWorker('xpack-firefoxSmoke', { runbld './test/scripts/jenkins_xpack_firefox_smoke.sh' }),
+              // 'xpack-visualRegression': getPostBuildWorker('xpack-visualRegression', { runbld './test/scripts/jenkins_xpack_visual_regression.sh' }),
+            ]),
           ])
-        }
-        node('flyweight') {
-          // If the build doesn't have a result set by this point, there haven't been any errors and it can be marked as a success
-          // The e-mail plugin for the infra e-mail depends upon this being set
-          currentBuild.result = currentBuild.result ?: 'SUCCESS'
-
-          sendMail()
         }
       }
     }
@@ -79,7 +102,7 @@ def withWorkers(name, preWorkerClosure = {}, workerClosures = [:]) {
         parallel(workers)
       } finally {
         catchError {
-          uploadAllGcsArtifacts(name)
+          // uploadAllGcsArtifacts(name)
         }
 
         catchError {
@@ -91,7 +114,7 @@ def withWorkers(name, preWorkerClosure = {}, workerClosures = [:]) {
         }
 
         catchError {
-          runErrorReporter()
+          // runErrorReporter()
         }
       }
     }
@@ -170,7 +193,10 @@ def legacyJobRunner(name) {
 
 def jobRunner(label, closure) {
   node(label) {
-    input "Waiting"
+
+    try {
+      sh "sh -c 'rm -rf ${WORKSPACE}; ln -s /dev/shm/workspace ${WORKSPACE}'"
+    } finally {}
 
     def scmVars = checkout scm
 
