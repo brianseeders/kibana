@@ -270,6 +270,8 @@ def dockerBuild() {
 }
 
 def withDockerImage(args, closure) {
+  // todo mount /home/kibana/.kibana/ and /home/kibana/.es?
+  args += " -v '${env.JENKINS_HOME}:${env.JENKINS_HOME}'"
   docker.image('kibana-ci').inside(args) {
     closure()
   }
