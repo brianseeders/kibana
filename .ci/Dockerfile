@@ -19,5 +19,9 @@ RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - 
 
 RUN groupadd -r kibana && useradd -r -g kibana kibana && mkdir /home/kibana && chown kibana:kibana /home/kibana
 
+COPY .ci/bash_standard_lib.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/bash_standard_lib.sh
+
 # RUN chown kibana /app
 USER kibana
+
