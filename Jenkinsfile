@@ -147,7 +147,9 @@ def getOssCiGroupWorker(ciGroup) {
       "CI_GROUP=${ciGroup}",
       "JOB=kibana-ciGroup${ciGroup}",
     ]) {
-      runbld "./test/scripts/jenkins_ci_group.sh"
+      withDocker('--cpus="2"') {
+        runbld "./test/scripts/jenkins_ci_group.sh"
+      }
     }
   })
 }
@@ -158,7 +160,9 @@ def getXpackCiGroupWorker(ciGroup) {
       "CI_GROUP=${ciGroup}",
       "JOB=xpack-kibana-ciGroup${ciGroup}",
     ]) {
-      runbld "./test/scripts/jenkins_xpack_ci_group.sh"
+      withDocker('--cpus="2"') {
+        runbld "./test/scripts/jenkins_xpack_ci_group.sh"
+      }
     }
   })
 }
@@ -217,6 +221,7 @@ def jobRunner(label, closure) {
       ]) {
         // scm is configured to check out to the ./kibana directory
         dir('kibana') {
+          dockerBuild()
           closure()
         }
       }
@@ -290,7 +295,23 @@ def sendKibanaMail() {
   }
 }
 
+def dockerBuild() {
+  return docker.build('kibana-ci', '-f .ci/Dockerfile .')
+}
+
+def withDockerImage(args, closure) {
+  docker.image('kibana-ci').inside(args) {
+    closure()
+  }
+}
+
+def withDockerImage(closure) {
+  withDockerImage('', closure)
+}
+
 def runbld(script, enableJunitProcessing = false) {
+  return bash(script)
+
   def extraConfig = enableJunitProcessing ? "" : "--config ${env.WORKSPACE}/kibana/.ci/runbld_no_junit.yml"
 
   sh "/usr/local/bin/runbld -d '${pwd()}' ${extraConfig} ${script}"
@@ -305,15 +326,21 @@ def bash(script) {
 }
 
 def doSetup() {
-  runbld "./test/scripts/jenkins_setup.sh"
+  withDocker {
+    runbld "./test/scripts/jenkins_setup.sh"
+  }
 }
 
 def buildOss() {
-  runbld "./test/scripts/jenkins_build_kibana.sh"
+  withDocker {
+    runbld "./test/scripts/jenkins_build_kibana.sh"
+  }
 }
 
 def buildXpack() {
-  runbld "./test/scripts/jenkins_xpack_build_kibana.sh"
+  withDocker {
+    runbld "./test/scripts/jenkins_xpack_build_kibana.sh"
+  }
 }
 
 def runErrorReporter() {

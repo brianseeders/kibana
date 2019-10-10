@@ -85,7 +85,7 @@ async function attemptToCreateCommand(
         if (headlessBrowser === '1') {
           // Use --disable-gpu to avoid an error from a missing Mesa library, as per
           // See: https://chromium.googlesource.com/chromium/src/+/lkgr/headless/README.md
-          chromeOptions.push('headless', 'disable-gpu');
+          chromeOptions.push('headless', 'disable-gpu', 'disable-dev-shm-usage');
         }
         chromeCapabilities.set('goog:chromeOptions', {
           w3c: false,
@@ -96,7 +96,11 @@ async function attemptToCreateCommand(
         const session = await new Builder()
           .forBrowser(browserType)
           .withCapabilities(chromeCapabilities)
-          .setChromeService(new chrome.ServiceBuilder(chromeDriver.path).enableVerboseLogging())
+          .setChromeService(
+            new chrome.ServiceBuilder(chromeDriver.path)
+              .enableVerboseLogging()
+              .addArguments('--whitelisted-ips=127.0.0.1')
+          )
           .build();
 
         return {
