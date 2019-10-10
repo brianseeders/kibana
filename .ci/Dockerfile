@@ -15,6 +15,13 @@ RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - 
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 # rm is so that Kaniko wont try to add tmp files to the image
 
+RUN LATEST_VAULT_RELEASE=$(curl -s https://api.github.com/repos/hashicorp/vault/tags | jq --raw-output .[0].name[1:]) \
+  && curl -L https://releases.hashicorp.com/vault/${LATEST_VAULT_RELEASE}/vault_${LATEST_VAULT_RELEASE}_linux_amd64.zip -o vault.zip \
+  && unzip vault.zip \
+  && rm vault.zip \
+  && chmod +x vault \
+  && mv vault /usr/local/bin/vault
+
 # WORKDIR /app
 
 RUN groupadd -r kibana && useradd -r -g kibana kibana && mkdir /home/kibana && chown kibana:kibana /home/kibana
