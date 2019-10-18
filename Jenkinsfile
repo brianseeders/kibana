@@ -2,6 +2,9 @@
 
 library 'kibana-pipeline-library'
 
+isBeforeStart = false
+agentLabel = 'tests-xl'
+
 stage("Kibana Pipeline") { // This stage is just here to help the BlueOcean UI a little bit
   timeout(time: 180, unit: 'MINUTES') {
     timestamps {
@@ -26,20 +29,84 @@ stage("Kibana Pipeline") { // This stage is just here to help the BlueOcean UI a
               'oss-firefoxSmoke': getPostBuildWorker('firefoxSmoke', { runbld './test/scripts/jenkins_firefox_smoke.sh' }),
               // 'oss-visualRegression': getPostBuildWorker('visualRegression', { runbld './test/scripts/jenkins_visual_regression.sh' }),
             ]),
-            'kibana-xpack-agent': withWorkers('kibana-xpack-tests', { buildXpack() }, [
-              'xpack-ciGroup1': getXpackCiGroupWorker(1),
-              'xpack-ciGroup2': getXpackCiGroupWorker(2),
-              'xpack-ciGroup3': getXpackCiGroupWorker(3),
-              'xpack-ciGroup4': getXpackCiGroupWorker(4),
-              'xpack-ciGroup5': getXpackCiGroupWorker(5),
-              'xpack-ciGroup6': getXpackCiGroupWorker(6),
-              'xpack-ciGroup7': getXpackCiGroupWorker(7),
-              'xpack-ciGroup8': getXpackCiGroupWorker(8),
-              'xpack-ciGroup9': getXpackCiGroupWorker(9),
-              'xpack-ciGroup10': getXpackCiGroupWorker(10),
-              'xpack-firefoxSmoke': getPostBuildWorker('xpack-firefoxSmoke', { runbld './test/scripts/jenkins_xpack_firefox_smoke.sh' }),
-              // 'xpack-visualRegression': getPostBuildWorker('xpack-visualRegression', { runbld './test/scripts/jenkins_xpack_visual_regression.sh' }),
+            'kibana-oss-agent-2': withWorkers('kibana-oss-tests-2', { buildOss() }, [
+              'oss-ciGroup1': getOssCiGroupWorker(1),
+              'oss-ciGroup2': getOssCiGroupWorker(2),
+              'oss-ciGroup3': getOssCiGroupWorker(3),
+              'oss-ciGroup4': getOssCiGroupWorker(4),
+              'oss-ciGroup5': getOssCiGroupWorker(5),
+              'oss-ciGroup6': getOssCiGroupWorker(6),
+              'oss-ciGroup7': getOssCiGroupWorker(7),
+              'oss-ciGroup8': getOssCiGroupWorker(8),
+              'oss-ciGroup9': getOssCiGroupWorker(9),
+              'oss-ciGroup10': getOssCiGroupWorker(10),
+              'oss-ciGroup11': getOssCiGroupWorker(11),
+              'oss-ciGroup12': getOssCiGroupWorker(12),
+              'oss-firefoxSmoke': getPostBuildWorker('firefoxSmoke', { runbld './test/scripts/jenkins_firefox_smoke.sh' }),
+              // 'oss-visualRegression': getPostBuildWorker('visualRegression', { runbld './test/scripts/jenkins_visual_regression.sh' }),
             ]),
+            'kibana-oss-agent-3': withWorkers('kibana-oss-tests-3', { buildOss() }, [
+              'oss-ciGroup1': getOssCiGroupWorker(1),
+              'oss-ciGroup2': getOssCiGroupWorker(2),
+              'oss-ciGroup3': getOssCiGroupWorker(3),
+              'oss-ciGroup4': getOssCiGroupWorker(4),
+              'oss-ciGroup5': getOssCiGroupWorker(5),
+              'oss-ciGroup6': getOssCiGroupWorker(6),
+              'oss-ciGroup7': getOssCiGroupWorker(7),
+              'oss-ciGroup8': getOssCiGroupWorker(8),
+              'oss-ciGroup9': getOssCiGroupWorker(9),
+              'oss-ciGroup10': getOssCiGroupWorker(10),
+              'oss-ciGroup11': getOssCiGroupWorker(11),
+              'oss-ciGroup12': getOssCiGroupWorker(12),
+              'oss-firefoxSmoke': getPostBuildWorker('firefoxSmoke', { runbld './test/scripts/jenkins_firefox_smoke.sh' }),
+              // 'oss-visualRegression': getPostBuildWorker('visualRegression', { runbld './test/scripts/jenkins_visual_regression.sh' }),
+            ]),
+            'kibana-oss-agent-4': withWorkers('kibana-oss-tests-4', { buildOss() }, [
+              'oss-ciGroup1': getOssCiGroupWorker(1),
+              'oss-ciGroup2': getOssCiGroupWorker(2),
+              'oss-ciGroup3': getOssCiGroupWorker(3),
+              'oss-ciGroup4': getOssCiGroupWorker(4),
+              'oss-ciGroup5': getOssCiGroupWorker(5),
+              'oss-ciGroup6': getOssCiGroupWorker(6),
+              'oss-ciGroup7': getOssCiGroupWorker(7),
+              'oss-ciGroup8': getOssCiGroupWorker(8),
+              'oss-ciGroup9': getOssCiGroupWorker(9),
+              'oss-ciGroup10': getOssCiGroupWorker(10),
+              'oss-ciGroup11': getOssCiGroupWorker(11),
+              'oss-ciGroup12': getOssCiGroupWorker(12),
+              'oss-firefoxSmoke': getPostBuildWorker('firefoxSmoke', { runbld './test/scripts/jenkins_firefox_smoke.sh' }),
+              // 'oss-visualRegression': getPostBuildWorker('visualRegression', { runbld './test/scripts/jenkins_visual_regression.sh' }),
+            ]),
+            'kibana-oss-agent-5': withWorkers('kibana-oss-tests-5', { buildOss() }, [
+              'oss-ciGroup1': getOssCiGroupWorker(1),
+              'oss-ciGroup2': getOssCiGroupWorker(2),
+              'oss-ciGroup3': getOssCiGroupWorker(3),
+              'oss-ciGroup4': getOssCiGroupWorker(4),
+              'oss-ciGroup5': getOssCiGroupWorker(5),
+              'oss-ciGroup6': getOssCiGroupWorker(6),
+              'oss-ciGroup7': getOssCiGroupWorker(7),
+              'oss-ciGroup8': getOssCiGroupWorker(8),
+              'oss-ciGroup9': getOssCiGroupWorker(9),
+              'oss-ciGroup10': getOssCiGroupWorker(10),
+              'oss-ciGroup11': getOssCiGroupWorker(11),
+              'oss-ciGroup12': getOssCiGroupWorker(12),
+              'oss-firefoxSmoke': getPostBuildWorker('firefoxSmoke', { runbld './test/scripts/jenkins_firefox_smoke.sh' }),
+              // 'oss-visualRegression': getPostBuildWorker('visualRegression', { runbld './test/scripts/jenkins_visual_regression.sh' }),
+            ]),
+            // 'kibana-xpack-agent': withWorkers('kibana-xpack-tests', { buildXpack() }, [
+            //   'xpack-ciGroup1': getXpackCiGroupWorker(1),
+            //   'xpack-ciGroup2': getXpackCiGroupWorker(2),
+            //   'xpack-ciGroup3': getXpackCiGroupWorker(3),
+            //   'xpack-ciGroup4': getXpackCiGroupWorker(4),
+            //   'xpack-ciGroup5': getXpackCiGroupWorker(5),
+            //   'xpack-ciGroup6': getXpackCiGroupWorker(6),
+            //   'xpack-ciGroup7': getXpackCiGroupWorker(7),
+            //   'xpack-ciGroup8': getXpackCiGroupWorker(8),
+            //   'xpack-ciGroup9': getXpackCiGroupWorker(9),
+            //   'xpack-ciGroup10': getXpackCiGroupWorker(10),
+            //   'xpack-firefoxSmoke': getPostBuildWorker('xpack-firefoxSmoke', { runbld './test/scripts/jenkins_xpack_firefox_smoke.sh' }),
+            //   // 'xpack-visualRegression': getPostBuildWorker('xpack-visualRegression', { runbld './test/scripts/jenkins_xpack_visual_regression.sh' }),
+            // ]),
           ])
         }
       }
@@ -49,8 +116,9 @@ stage("Kibana Pipeline") { // This stage is just here to help the BlueOcean UI a
 
 def withWorkers(name, preWorkerClosure = {}, workerClosures = [:]) {
   return {
-    jobRunner('tests-xl') {
+    jobRunner(agentLabel) {
       try {
+        isBeforeStart = false
         doSetup()
         preWorkerClosure()
 
@@ -117,7 +185,8 @@ def getOssCiGroupWorker(ciGroup) {
       "CI_GROUP=${ciGroup}",
       "JOB=kibana-ciGroup${ciGroup}",
     ]) {
-      withDockerImage('--cpu-shares 68') {
+      //withDockerImage('--cpu-shares 68') {
+      withDockerImage {
         runbld "./test/scripts/jenkins_ci_group.sh"
       }
     }
@@ -130,7 +199,8 @@ def getXpackCiGroupWorker(ciGroup) {
       "CI_GROUP=${ciGroup}",
       "JOB=xpack-kibana-ciGroup${ciGroup}",
     ]) {
-      withDockerImage('--cpu-shares 68') {
+      //withDockerImage('--cpu-shares 68') {
+      withDockerImage {
         runbld "./test/scripts/jenkins_xpack_ci_group.sh"
       }
     }
@@ -169,8 +239,13 @@ def jobRunner(label, closure) {
   node(label) {
 
     try {
-      sh 'mkdir -p /dev/shm/workspace'
-      sh "sh -c 'rm -rf ${WORKSPACE}; ln -s /dev/shm/workspace ${WORKSPACE}'"
+      if (!isBeforeStart) {
+        sh 'mkdir -p /dev/shm/workspace'
+        sh "sh -c 'rm -rf ${WORKSPACE}; ln -s /dev/shm/workspace ${WORKSPACE}'"
+      }
+
+      // sh 'ls -alh /dev/shm/workspace'
+      // sh 'chmod 777 /dev/shm/workspace'
     } finally {}
 
     def scmVars = checkout scm
@@ -266,14 +341,24 @@ def sendKibanaMail() {
 }
 
 def dockerBuild() {
+  if (isBeforeStart) { return }
+
   return docker.build('kibana-ci', '-f .ci/Dockerfile .')
 }
 
 def withDockerImage(args, closure) {
+  // if (isBeforeStart) { return }
+
   // todo mount /home/kibana/.kibana/ and /home/kibana/.es?
-  args += " -v '${env.JENKINS_HOME}:${env.JENKINS_HOME}'"
+  args += " -v '${env.JENKINS_HOME}:${env.JENKINS_HOME}' -v '/dev/shm/workspace:/dev/shm/workspace' --shm-size 2GB"
   docker.image('kibana-ci').inside(args) {
-    closure()
+
+      // sh "ls -alh ${env.WORKSPACE}"
+      // sh 'ls -alh /dev/shm'
+      // sh 'ls -alh /dev/shm/workspace || true'
+      // sh "ln -s '${env.WORKSPACE}' /dev/shm/workspace"
+      closure()
+
   }
 }
 
@@ -282,6 +367,8 @@ def withDockerImage(closure) {
 }
 
 def runbld(script, enableJunitProcessing = false) {
+  if (isBeforeStart) { return }
+
   return bash(script)
 
   def extraConfig = enableJunitProcessing ? "" : "--config ${env.WORKSPACE}/kibana/.ci/runbld_no_junit.yml"
@@ -294,22 +381,30 @@ def runbldJunit() {
 }
 
 def bash(script) {
+  if (isBeforeStart) { return }
+
   sh "#!/bin/bash\n${script}"
 }
 
 def doSetup() {
+  if (isBeforeStart) { return }
+
   withDockerImage {
     runbld "./test/scripts/jenkins_setup.sh"
   }
 }
 
 def buildOss() {
+  if (isBeforeStart) { return }
+
   withDockerImage {
     runbld "./test/scripts/jenkins_build_kibana.sh"
   }
 }
 
 def buildXpack() {
+  if (isBeforeStart) { return }
+
   withDockerImage {
     runbld "./test/scripts/jenkins_xpack_build_kibana.sh"
   }
@@ -320,4 +415,26 @@ def runErrorReporter() {
     source src/dev/ci_setup/setup_env.sh
     node src/dev/failed_tests/cli
   """
+}
+
+def withDebug(closure) {
+  try {
+    closure()
+  } finally {
+    while(true) {
+      def script = input message: 'Script?', parameters: [text(defaultValue: '', description: '', name: 'script')]
+      try {
+        sh script
+      } catch (ex) {
+        print ex
+      }
+    }
+  }
+}
+
+def withStart(closure) {
+  isBeforeStart = false
+  withDebug {
+    closure()
+  }
 }
