@@ -1,6 +1,6 @@
 def withWorkers(name, preWorkerClosure = {}, workerClosures = [:]) {
   return {
-    jobRunner('tests-xl', true) {
+    jobRunner('tests-windows-xl', true) {
       try {
         doSetup()
         preWorkerClosure()
@@ -91,7 +91,7 @@ def legacyJobRunner(name) {
         withEnv([
           "JOB=${name}",
         ]) {
-          jobRunner('linux && immutable', false) {
+          jobRunner('windows && immutable', false) {
             try {
               runbld('.ci/run.sh', true)
             } finally {
