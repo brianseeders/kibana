@@ -62,7 +62,7 @@ nodeDir="$cacheDir/node/$nodeVersion"
 
 if [[ "$OS" == "win" ]]; then
   nodeBin="$HOME/node"
-  nodeUrl="https://us-central1-elastic-kibana-184716.cloudfunctions.net/kibana-ci-proxy-cache/dist/v$nodeVersion/node-v$nodeVersion-win-x64.zip"
+  nodeUrl="https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-win-x64.zip" # TODO
 else
   nodeBin="$nodeDir/bin"
   nodeUrl="https://us-central1-elastic-kibana-184716.cloudfunctions.net/kibana-ci-proxy-cache/dist/v$nodeVersion/node-v$nodeVersion-linux-x64.tar.gz"
