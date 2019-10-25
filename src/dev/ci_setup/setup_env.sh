@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
+set -x
 
 if [[ "$CI_ENV_SETUP" ]]; then
   return 0
@@ -93,10 +94,19 @@ if [[ "$installNode" == "true" ]]; then
   fi
 fi
 
+echo $PATH
+env | sort
+
 ###
 ### "install" node into this shell
 ###
 export PATH="$nodeBin:$PATH"
+
+###
+### read kibana package branch
+###
+kbnBranch="$(node -e "console.log(require('./package.json').branch)")"
+export KIBANA_PKG_BRANCH="$kbnBranch"
 
 if [[ "$installNode" == "true" || ! $(which yarn) ]]; then
   ###
