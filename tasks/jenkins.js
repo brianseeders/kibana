@@ -23,7 +23,7 @@ module.exports = function (grunt) {
   ]);
 
   grunt.registerTask('jenkins:unit', [
-    'run:eslint',
+    // 'run:eslint',
     'run:sasslint',
     'run:checkTsProjects',
     'run:checkCoreApiChanges',
