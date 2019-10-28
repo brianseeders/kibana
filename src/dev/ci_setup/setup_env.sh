@@ -26,7 +26,7 @@ export FORCE_COLOR=1
 ###
 ### Disable git automatic lineend handling
 ###
-git config --global core.autocrlf true;
+git config --global core.autocrlf false;
 
 ###
 ### check that we seem to be in a kibana project
