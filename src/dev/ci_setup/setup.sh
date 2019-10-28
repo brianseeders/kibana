@@ -13,30 +13,37 @@ echo " -- KIBANA_PKG_BRANCH='$KIBANA_PKG_BRANCH'"
 # export TEST_ES_SNAPSHOT_VERSION=8.0.0-5480a616
 echo " -- TEST_ES_SNAPSHOT_VERSION='$TEST_ES_SNAPSHOT_VERSION'"
 
-###
-### install dependencies
-###
-echo " -- installing node.js dependencies"
-yarn kbn bootstrap --prefer-offline
+function verifyRunWithoutChanges {
+  cmd="$*"
+  "$@"
 
-###
-### verify no git modifications
-###
-GIT_CHANGES="$(git ls-files --modified)"
-if [ "$GIT_CHANGES" ]; then
-  echo -e "\n${RED}ERROR: 'yarn kbn bootstrap' caused changes to the following files:${C_RESET}\n"
-  echo -e "$GIT_CHANGES\n"
-  exit 1
-fi
+  changes="$(git ls-files --modified)"
+  diff="$(git diff)"
+  RED='\033[0;31m'
+  C_RESET='\033[0m' # Reset color
 
-if [ "$changes" != "" ] && [ "$diff" == "" ]; then
-  echo ""
-  echo -e "${RED}WARNING: hard reseting repo to discard un-diffable changes:\n"
-  echo ""
-  echo "$changes"
-  echo ""
-  git reset --hard;
-fi
+  if [ "$changes" != "" ] && [ "$diff" != "" ]; then
+    echo ""
+    echo -e "${RED}ERROR: '$cmd' caused changes to the following files:${C_RESET}\n"
+    echo ""
+    echo "$changes"
+    echo ""
+    echo "Diff output:"
+    git diff
+    echo ""
+    echo ""
+    exit 1
+  fi
+
+  if [ "$changes" != "" ] && [ "$diff" == "" ]; then
+    echo ""
+    echo -e "${RED}WARNING: hard reseting repo to discard un-diffable changes:${C_RESET}\n"
+    echo ""
+    echo "$changes"
+    echo ""
+    git reset --hard;
+  fi
+}
 
 ###
 ### install dependencies
@@ -57,14 +64,4 @@ fi
 ### rebuild kbn-pm distributable to ensure it's not out of date
 ###
 echo " -- building renovate config"
-node scripts/build_renovate_config
-
-###
-### verify no git modifications
-###
-GIT_CHANGES="$(git ls-files --modified)"
-if [ "$GIT_CHANGES" ]; then
-  echo -e "\n${RED}ERROR: 'node scripts/build_renovate_config' caused changes to the following files:${C_RESET}\n"
-  echo -e "$GIT_CHANGES\n"
-  exit 1
-fi
+verifyRunWithoutChanges node scripts/build_renovate_config
