@@ -1,5 +1,5 @@
 JOB:
-  - windows-kibana-intake
+  - kibana-intake
 
 # `~` is yaml for `null`
 exclude: ~
