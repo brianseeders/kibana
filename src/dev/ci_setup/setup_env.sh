@@ -44,9 +44,6 @@ export XPACK_DIR="$KIBANA_DIR/x-pack"
 parentDir="$(cd "$KIBANA_DIR/.."; pwd)"
 export PARENT_DIR="$parentDir"
 
-kbnBranch="$(jq -r .branch "$KIBANA_DIR/package.json")"
-export KIBANA_PKG_BRANCH="$kbnBranch"
-
 ###
 ### download node
 ###
