@@ -22,6 +22,7 @@ function checkout_sibling {
 
     function clone_target_is_valid {
       echo " -> checking for '${cloneBranch}' branch at ${cloneAuthor}/${project}"
+      git ls-remote --heads "git@github.com:${cloneAuthor}/${project}.git" ${cloneBranch} # TODO remove
       if [[ -n "$(git ls-remote --heads "git@github.com:${cloneAuthor}/${project}.git" ${cloneBranch} 2>/dev/null)" ]]; then
         return 0
       else
