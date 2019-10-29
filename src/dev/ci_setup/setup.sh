@@ -26,10 +26,10 @@ function verifyRunWithoutChanges {
     echo ""
     echo -e "${RED}ERROR: '$cmd' caused changes to the following files:${C_RESET}\n"
     echo ""
-    echo "$changes"
+    # echo "$changes"
     echo ""
     echo "Diff output:"
-    git diff
+    # git diff
     echo ""
     echo ""
     exit 1
@@ -39,7 +39,7 @@ function verifyRunWithoutChanges {
     echo ""
     echo -e "${RED}WARNING: hard reseting repo to discard un-diffable changes:${C_RESET}\n"
     echo ""
-    echo "$changes"
+    # echo "$changes"
     echo ""
     git reset --hard;
   fi
