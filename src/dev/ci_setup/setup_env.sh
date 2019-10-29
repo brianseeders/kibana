@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -e
-set -x
 
 if [[ "$CI_ENV_SETUP" ]]; then
   return 0
@@ -94,7 +93,6 @@ if [[ "$installNode" == "true" ]]; then
   fi
 fi
 
-echo $PATH
 env | sort
 
 ###
