@@ -2,6 +2,10 @@
 
 set -e
 
+if [[ "$(uname)" = *"MINGW64_NT"* ]]; then
+  source src/dev/ci_setup/setup_windows.sh
+fi
+
 source src/dev/ci_setup/setup_env.sh true
 
 echo " -- KIBANA_DIR='$KIBANA_DIR'"
