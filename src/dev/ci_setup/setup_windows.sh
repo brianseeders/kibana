@@ -24,8 +24,7 @@ mkdir -p "$BIN_DIR"
 curl --silent -L -o "IEDriverServer.zip" "$IE_DRIVER_URL"
 unzip -qo "IEDriverServer.zip" -d "$BIN_DIR"
 
-#
-
+powershell src/dev/ci_setup/disable_ie_sec.ps1 || true
 
 # /c/Users/jenkins/.java/openjdk13/bin
 # /mingw64/bin
