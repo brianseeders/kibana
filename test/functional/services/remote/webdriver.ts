@@ -169,6 +169,7 @@ async function attemptToCreateCommand(
 
         const ieCapabilities = Capabilities.ie();
         ieCapabilities.set('se:ieOptions', {
+          'ie.forceCreateProcessApi': true,
           'ie.ensureCleanSession': true,
           ignoreProtectedModeSettings: true,
           ignoreZoomSetting: false, // requires us to have 100% zoom level
