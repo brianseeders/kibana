@@ -1,45 +1,48 @@
 def withWorkers(machineName, preWorkerClosure = {}, workerClosures = [:]) {
   return {
-    jobRunner('tests-xl', true) {
-      withGcsArtifactUpload(machineName, {
-        try {
-          doSetup()
-          preWorkerClosure()
+    dir("../${machineName}") {
+      sh 'cp -R ../kibana/* .'
+      withDockerImage {
+        withGcsArtifactUpload(machineName, {
+          try {
+            doSetup()
+            preWorkerClosure()
 
-          def nextWorker = 1
-          def worker = { workerClosure ->
-            def workerNumber = nextWorker
-            nextWorker++
+            def nextWorker = 1
+            def worker = { workerClosure ->
+              def workerNumber = nextWorker
+              nextWorker++
 
-            return {
-              // This delay helps smooth out CPU load caused by ES/Kibana instances starting up at the same time
-              def delay = (workerNumber-1)*20
-              sleep(delay)
+              return {
+                // This delay helps smooth out CPU load caused by ES/Kibana instances starting up at the same time
+                def delay = (workerNumber-1)*20
+                sleep(delay)
 
-              workerClosure(workerNumber)
+                workerClosure(workerNumber)
+              }
+            }
+
+            def workers = [:]
+            workerClosures.each { workerName, workerClosure ->
+              workers[workerName] = worker(workerClosure)
+            }
+
+            parallel(workers)
+          } finally {
+            catchError {
+              runErrorReporter()
+            }
+
+            catchError {
+              runbld.junit()
+            }
+
+            catchError {
+              publishJunit()
             }
           }
-
-          def workers = [:]
-          workerClosures.each { workerName, workerClosure ->
-            workers[workerName] = worker(workerClosure)
-          }
-
-          parallel(workers)
-        } finally {
-          catchError {
-            runErrorReporter()
-          }
-
-          catchError {
-            runbld.junit()
-          }
-
-          catchError {
-            publishJunit()
-          }
-        }
-      })
+        })
+      }
     }
   }
 }
@@ -93,7 +96,7 @@ def legacyJobRunner(name) {
         withEnv([
           "JOB=${name}",
         ]) {
-          jobRunner('linux && immutable', false) {
+          withDockerImage {
             withGcsArtifactUpload(name, {
               try {
                 runbld('.ci/run.sh', "Execute ${name}", true)
@@ -111,6 +114,13 @@ def legacyJobRunner(name) {
         }
       }
     ])
+  }
+}
+
+def withDockerImage(args, closure) {
+  args += " -v '${env.JENKINS_HOME}:${env.JENKINS_HOME}' -v '/dev/shm/workspace:/dev/shm/workspace' --shm-size 2GB"
+  docker.image('kibana-ci').inside(args) {
+    closure()
   }
 }
 
