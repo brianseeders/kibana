@@ -1,7 +1,8 @@
 def withWorkers(machineName, preWorkerClosure = {}, workerClosures = [:]) {
   return {
-    dir("../${machineName}") {
-      sh 'cp -R ../kibana/. .'
+    dir("../${machineName}/kibana") {
+      sh 'cp -R ../../kibana/. .'
+      sh 'rm -rf ../elasticsearch || true'
       withDockerImage {
         withGcsArtifactUpload(machineName, {
           try {
@@ -62,7 +63,9 @@ def getPostBuildWorker(name, closure) {
       "TEST_ES_TRANSPORT_PORT=${esTransportPort}",
       "IS_PIPELINE_JOB=1",
     ]) {
-      closure()
+      withDockerImage {
+        closure()
+      }
     }
   }
 }
