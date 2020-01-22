@@ -22,7 +22,7 @@ function checkout_sibling {
 
     function clone_target_is_valid {
       echo " -> checking for '${cloneBranch}' branch at ${cloneAuthor}/${project}"
-      if [[ -n "$(git ls-remote --heads "git@github.com:${cloneAuthor}/${project}.git" ${cloneBranch} 2>/dev/null)" ]]; then
+      if [[ -n "$(git ls-remote --heads "https://www.github.com/${cloneAuthor}/${project}.git" ${cloneBranch} 2>/dev/null)" ]]; then
         return 0
       else
         return 1
@@ -71,7 +71,7 @@ function checkout_sibling {
       fi
 
       echo " -> checking out '${cloneBranch}' branch from ${cloneAuthor}/${project}..."
-      git clone -b "$cloneBranch" "git@github.com:${cloneAuthor}/${project}.git" "$targetDir" --depth=1
+      git clone -b "$cloneBranch" "https://www.github.com/${cloneAuthor}/${project}.git" "$targetDir" --depth=1
       echo " -> checked out ${project} revision: $(git -C "${targetDir}" rev-parse HEAD)"
       echo
     }

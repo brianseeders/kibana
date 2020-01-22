@@ -1,7 +1,7 @@
 def withWorkers(machineName, preWorkerClosure = {}, workerClosures = [:]) {
   return {
     dir("../${machineName}") {
-      sh 'cp -R ../kibana/* .'
+      sh 'cp -R ../kibana/. .'
       withDockerImage {
         withGcsArtifactUpload(machineName, {
           try {
@@ -29,17 +29,17 @@ def withWorkers(machineName, preWorkerClosure = {}, workerClosures = [:]) {
 
             parallel(workers)
           } finally {
-            catchError {
-              runErrorReporter()
-            }
+            // catchError {
+            //   runErrorReporter()
+            // }
 
-            catchError {
-              runbld.junit()
-            }
+            // catchError {
+            //   runbld.junit()
+            // }
 
-            catchError {
-              publishJunit()
-            }
+            // catchError {
+            //   publishJunit()
+            // }
           }
         })
       }
@@ -117,7 +117,7 @@ def legacyJobRunner(name) {
   }
 }
 
-def withDockerImage(args, closure) {
+def withDockerImage(args = '', Closure closure) {
   args += " -v '${env.JENKINS_HOME}:${env.JENKINS_HOME}' -v '/dev/shm/workspace:/dev/shm/workspace' --shm-size 2GB"
   docker.image('kibana-ci').inside(args) {
     closure()
