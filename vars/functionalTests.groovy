@@ -51,13 +51,4 @@ def uploadMetrics() {
   }
 }
 
-def createPlan(functionalMetricsPath = "") {
-  withEnv(["FUNCTIONAL_METRICS_PATH=${functionalMetricsPath}"]) {
-    kibanaPipeline.bash("source src/dev/ci_setup/setup_env.sh; node scripts/create_functional_test_plan.js", "Create functional test plan")
-  }
-  def testPlan = toJSON(readFile(file: 'target/test-suites-ci-plan.json'))
-
-  return testPlan
-}
-
 return this

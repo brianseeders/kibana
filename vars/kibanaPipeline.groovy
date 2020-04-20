@@ -1,7 +1,3 @@
-import groovy.transform.Field
-
-public static @Field KIBANA_FINISHED_FUNCTIONAL_SUITES = [:]
-
 def withPostBuildReporting(Closure closure) {
   try {
     closure()
@@ -248,56 +244,6 @@ def call(Map params = [:], Closure closure) {
   }
 }
 
-def getFinishedSuites() {
-  return KIBANA_FINISHED_FUNCTIONAL_SUITES
-}
-
-def addFinishedSuite(type, suite) {
-  KIBANA_FINISHED_FUNCTIONAL_SUITES[type] = KIBANA_FINISHED_FUNCTIONAL_SUITES[type] ?: []
-  KIBANA_FINISHED_FUNCTIONAL_SUITES[type] << suite
-}
-
-def runFunctionalTestSuite(type, testSuite) {
-  def testMetadataPath = pwd() + "/target/test_metadata_${type}_${env.TASK_QUEUE_PROCESS_ID}.json"
-  def byFile = [:]
-  testSuite.files.each { byFile[it.file] = it }
-
-  withFunctionalTestEnv([
-    "JOB=kibana-functional-${type}-${env.TASK_QUEUE_PROCESS_ID}-${env.TASK_QUEUE_ITERATION_ID}",
-    "TEST_METADATA_PATH=${testMetadataPath}",
-  ]) {
-    catchErrors {
-      retryable(env.JOB) {
-        if (testSuite.files && testSuite.files.size() > 0) {
-          try {
-            def filesString = testSuite.files.collect { "--include '${it.file}'" }.join(' ')
-            def command = "test/scripts/jenkins_functional_tests.sh ${type} ${testSuite.config} ${filesString}"
-            // def scriptPath = "${pwd()}/target/functional-tests-script.sh"
-            // writeFile(file: scriptPath, text: command)
-            // runbld(scriptPath, "${type} tests: ${testSuite.config}")
-            bash(command, "${type} tests: ${testSuite.config}")
-          } finally {
-            catchErrors {
-              def suites = toJSON(readFile(file: testMetadataPath))
-              suites.each {
-                catchErrors {
-                  if (byFile[it.file]) {
-                    it.previousDuration = byFile[it.file].duration
-                  }
-                  addFinishedSuite(type, it)
-                }
-              }
-              // Filter out the test suites that were successful, in case a flaky test needs to retry
-              // That way, only the suite(s) that failed will run a second time
-              testSuite.files = testSuite.files.findAll { suite -> !suites.find { finishedSuite -> finishedSuite.file == suite.file && finishedSuite.success } }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
 // Only works inside of a worker after scm checkout
 def getTargetBranch() {
   return env.ghprbTargetBranch ?: (env.GIT_BRANCH - ~/^[^\/]+\//)
@@ -308,21 +254,10 @@ def withFunctionalTaskQueue(Map options = [:], Closure closure) {
     bash("${env.WORKSPACE}/kibana/test/scripts/jenkins_setup_parallel_workspace.sh", "Set up duplicate workspace for parallel process")
   }
 
-  def config = [parallel: 24, setup: setupClosure] + options
+  def config = [parallel: 12, setup: setupClosure] + options
 
   withTaskQueue(config) {
-    sh 'mkdir -p target'
-
-    def functionalMetricsPath = ""
-    try {
-      functionalMetricsPath = functionalTests.downloadMetrics()
-    } catch (ex) {
-      buildUtils.printStacktrace(ex)
-      print "Error reading previous functional test metrics. Will create a non-optimal test plan."
-    }
-
-    def testPlan = functionalTests.createPlan(functionalMetricsPath)
-    closure.call(testPlan)
+    closure.call()
   }
 }
 
@@ -337,15 +272,16 @@ def allCiTasks() {
 }
 
 def functionalTasks() {
-  def config = [name: 'parallel-worker', size: 'xxl', ramDisk: true]
+  def config = [name: 'parallel-worker', size: 'xl', ramDisk: true]
 
   workers.ci(config) {
     catchErrors {
-      withFunctionalTaskQueue(parallel: 24) { testPlan ->
+      withFunctionalTaskQueue(parallel: 12) { testPlan ->
         task {
           buildOss()
 
-          tasks(testPlan.oss.collect { return { runFunctionalTestSuite('oss', it) } })
+          def ciGroups = 1..12
+          tasks(ciGroups.collect { ossCiGroupProcess(it) })
 
           tasks([
             functionalTestProcess('oss-accessibility', './test/scripts/jenkins_accessibility.sh'),
@@ -359,7 +295,8 @@ def functionalTasks() {
         task {
           buildXpack()
 
-          tasks(testPlan.xpack.collect { return { runFunctionalTestSuite('xpack', it) } })
+          def ciGroups = 1..10
+          tasks(ciGroups.collect { xpackCiGroupProcess(it) })
 
           tasks([
             functionalTestProcess('xpack-accessibility', './test/scripts/jenkins_xpack_accessibility.sh'),

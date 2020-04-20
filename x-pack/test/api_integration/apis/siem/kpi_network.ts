@@ -12,8 +12,7 @@ import { FtrProviderContext } from '../../ftr_provider_context';
 export default function({ getService }: FtrProviderContext) {
   const esArchiver = getService('esArchiver');
   const client = getService('siemGraphQLClient');
-  // TODO
-  describe.skip('Kpi Network', () => {
+  describe('Kpi Network', () => {
     describe('With filebeat', () => {
       before(() => esArchiver.load('filebeat/default'));
       after(() => esArchiver.unload('filebeat/default'));

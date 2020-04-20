@@ -79,7 +79,7 @@ export class FunctionalTestRunner {
     });
   }
 
-  async runWithStubs<T = any>(f: (mocha: any) => Promise<T>): Promise<T> {
+  async getTestStats() {
     return await this._run(async (config, coreProviders) => {
       if (config.get('testRunner')) {
         throw new Error('Unable to get test stats for config that uses a custom test runner');
@@ -102,12 +102,8 @@ export class FunctionalTestRunner {
         ...readStubbedProviderSpec('PageObject', config.get('pageObjects')),
       ]);
 
-      return f(await setupMocha(this.lifecycle, this.log, config, providers));
-    });
-  }
+      const mocha = await setupMocha(this.lifecycle, this.log, config, providers);
 
-  async getTestStats() {
-    return await this.runWithStubs(async mocha => {
       const countTests = (suite: Suite): number =>
         suite.suites.reduce((sum, s) => sum + countTests(s), suite.tests.length);
 
@@ -115,26 +111,6 @@ export class FunctionalTestRunner {
         testCount: countTests(mocha.suite),
         excludedTests: mocha.excludedTests.map((t: Test) => t.fullTitle()),
       };
-    });
-  }
-
-  async getTestSuites() {
-    return await this.runWithStubs(async mocha => {
-      const suites: Record<string, object> = {};
-
-      const findLeafSuites = (suite: any) => {
-        if (suite.tests && suite.tests.length && suite.suiteTag) {
-          suites[suite.suiteTag] = { file: suite.suiteTag };
-        }
-
-        if (suite.suites && suite.suites.length) {
-          suite.suites.forEach((s: any) => findLeafSuites(s));
-        }
-      };
-
-      findLeafSuites(mocha.suite);
-
-      return Object.values(suites);
     });
   }
 
