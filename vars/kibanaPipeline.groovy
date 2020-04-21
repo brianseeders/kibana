@@ -55,6 +55,10 @@ def functionalTestProcess(String name, String script) {
 
 def ossCiGroupProcess(ciGroup) {
   return functionalTestProcess("ciGroup" + ciGroup) {
+    if (ciGroup.toInteger > 6) {
+      sleep(60)
+    }
+
     withEnv([
       "CI_GROUP=${ciGroup}",
       "JOB=kibana-ciGroup${ciGroup}",
@@ -68,6 +72,10 @@ def ossCiGroupProcess(ciGroup) {
 
 def xpackCiGroupProcess(ciGroup) {
   return functionalTestProcess("xpack-ciGroup" + ciGroup) {
+    if (ciGroup.toInteger > 5) {
+      sleep(120)
+    }
+
     withEnv([
       "CI_GROUP=${ciGroup}",
       "JOB=xpack-kibana-ciGroup${ciGroup}",
@@ -266,7 +274,7 @@ def allCiTasks() {
     'kibana-intake-agent': workers.intake('kibana-intake', './test/scripts/jenkins_unit.sh'),
     'x-pack-intake-agent': workers.intake('x-pack-intake', './test/scripts/jenkins_xpack.sh'),
     'kibana-functional-agent': {
-      kibanaPipeline.functionalTasks()
+      functionalTasks()
     },
   ])
 }
