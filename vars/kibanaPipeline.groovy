@@ -55,7 +55,7 @@ def functionalTestProcess(String name, String script) {
 
 def ossCiGroupProcess(ciGroup) {
   return functionalTestProcess("ciGroup" + ciGroup) {
-    if (ciGroup.toInteger > 6) {
+    if (ciGroup.toInteger() > 6) {
       sleep(60)
     }
 
@@ -72,7 +72,7 @@ def ossCiGroupProcess(ciGroup) {
 
 def xpackCiGroupProcess(ciGroup) {
   return functionalTestProcess("xpack-ciGroup" + ciGroup) {
-    if (ciGroup.toInteger > 5) {
+    if (ciGroup.toInteger() > 5) {
       sleep(120)
     }
 
