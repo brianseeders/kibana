@@ -55,10 +55,6 @@ def functionalTestProcess(String name, String script) {
 
 def ossCiGroupProcess(ciGroup) {
   return functionalTestProcess("ciGroup" + ciGroup) {
-    if (ciGroup.toInteger() > 6) {
-      sleep(60)
-    }
-
     withEnv([
       "CI_GROUP=${ciGroup}",
       "JOB=kibana-ciGroup${ciGroup}",
@@ -72,10 +68,6 @@ def ossCiGroupProcess(ciGroup) {
 
 def xpackCiGroupProcess(ciGroup) {
   return functionalTestProcess("xpack-ciGroup" + ciGroup) {
-    if (ciGroup.toInteger() > 5) {
-      sleep(120)
-    }
-
     withEnv([
       "CI_GROUP=${ciGroup}",
       "JOB=xpack-kibana-ciGroup${ciGroup}",
@@ -262,7 +254,7 @@ def withFunctionalTaskQueue(Map options = [:], Closure closure) {
     bash("${env.WORKSPACE}/kibana/test/scripts/jenkins_setup_parallel_workspace.sh", "Set up duplicate workspace for parallel process")
   }
 
-  def config = [parallel: 12, setup: setupClosure] + options
+  def config = [parallel: 24, setup: setupClosure] + options
 
   withTaskQueue(config) {
     closure.call()
@@ -279,12 +271,46 @@ def allCiTasks() {
   ])
 }
 
+def testTask(description, script) {
+  return {
+    withFunctionalTestEnv {
+      bash("source test/scripts/jenkins_test_setup.sh; ${script}", description)
+    }
+  }
+}
+
 def functionalTasks() {
-  def config = [name: 'parallel-worker', size: 'xl', ramDisk: true]
+  def config = [name: 'parallel-worker', size: 'xxl', ramDisk: true]
 
   workers.ci(config) {
     catchErrors {
-      withFunctionalTaskQueue(parallel: 12) { testPlan ->
+      withFunctionalTaskQueue(parallel: 24) { testPlan ->
+
+        tasks([
+          testTask('run:eslint', 'yarn run grunt run:eslint'),
+          testTask('run:sasslint', 'yarn run grunt run:sasslint'),
+          testTask('run:checkTsProjects', 'yarn run grunt run:checkTsProjects'),
+          testTask('run:checkDocApiChanges', 'yarn run grunt run:checkDocApiChanges'),
+          testTask('run:typeCheck', 'yarn run grunt run:typeCheck'),
+          testTask('run:i18nCheck', 'yarn run grunt run:i18nCheck'),
+          testTask('run:checkFileCasing', 'yarn run grunt run:checkFileCasing'),
+          testTask('run:checkLockfileSymlinks', 'yarn run grunt run:checkLockfileSymlinks'),
+          testTask('run:licenses', 'yarn run grunt run:licenses'),
+          testTask('run:verifyDependencyVersions', 'yarn run grunt run:verifyDependencyVersions'),
+          testTask('run:verifyNotice', 'yarn run grunt run:verifyNotice'),
+          testTask('run:mocha', 'yarn run grunt run:mocha'),
+          testTask('run:test_jest', 'yarn run grunt run:test_jest'),
+          // testTask('run:test_jest_integration', 'yarn run grunt run:test_jest_integration'),
+          testTask('run:test_projects', 'yarn run grunt run:test_projects'),
+          // testTask('run:test_karma_ci', 'yarn run grunt run:test_karma_ci'),
+          testTask('run:test_hardening', 'yarn run grunt run:test_hardening'),
+          // testTask('run:apiIntegrationTests', 'yarn run grunt run:apiIntegrationTests'),
+
+          // testTask('X-Pack Karma', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Karma Tests" yarn test:karma'),
+          testTask('X-Pack SIEM cyclic dependency', 'cd x-pack; checks-reporter-with-killswitch "X-Pack SIEM cyclic dependency test" node node plugins/siem/scripts/check_circular_deps'),
+          // testTask('X-Pack Jest', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Jest" node --max-old-space-size=6144 scripts/jest --ci --verbose --detectOpenHandles'),
+        ])
+
         task {
           buildOss()
 
@@ -318,7 +344,7 @@ def functionalTasks() {
       }
     }
 
-    functionalTests.uploadMetrics()
+    // functionalTests.uploadMetrics()
   }
 }
 
