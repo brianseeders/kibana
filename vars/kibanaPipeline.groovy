@@ -308,7 +308,7 @@ def functionalTasks() {
 
           // testTask('X-Pack Karma', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Karma Tests" yarn test:karma'),
           testTask('X-Pack SIEM cyclic dependency', 'cd x-pack; checks-reporter-with-killswitch "X-Pack SIEM cyclic dependency test" node plugins/siem/scripts/check_circular_deps'),
-          // testTask('X-Pack Jest', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Jest" node --max-old-space-size=6144 scripts/jest --ci --verbose --detectOpenHandles'),
+          testTask('X-Pack Jest', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Jest" node --max-old-space-size=6144 scripts/jest --ci --verbose --detectOpenHandles'),
         ])
 
         task {
@@ -318,6 +318,7 @@ def functionalTasks() {
           tasks(ciGroups.collect { ossCiGroupProcess(it) })
 
           tasks([
+            functionalTestProcess('oss-firefox', './test/scripts/jenkins_firefox_smoke.sh'),
             functionalTestProcess('oss-accessibility', './test/scripts/jenkins_accessibility.sh'),
             // functionalTestProcess('oss-visualRegression', './test/scripts/jenkins_visual_regression.sh'),
           ])
@@ -333,6 +334,7 @@ def functionalTasks() {
           tasks(ciGroups.collect { xpackCiGroupProcess(it) })
 
           tasks([
+            functionalTestProcess('xpack-firefox', './test/scripts/jenkins_xpack_firefox_smoke.sh'),
             functionalTestProcess('xpack-accessibility', './test/scripts/jenkins_xpack_accessibility.sh'),
             // functionalTestProcess('xpack-visualRegression', './test/scripts/jenkins_xpack_visual_regression.sh'),
           ])
