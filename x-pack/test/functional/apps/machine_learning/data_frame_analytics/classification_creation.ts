@@ -12,6 +12,7 @@ export default function({ getService }: FtrProviderContext) {
   const ml = getService('ml');
 
   describe('classification creation', function() {
+    this.tags(['smoke']);
     before(async () => {
       await esArchiver.loadIfNeeded('ml/bm_classification');
       await ml.testResources.createIndexPatternIfNeeded('ft_bank_marketing', '@timestamp');

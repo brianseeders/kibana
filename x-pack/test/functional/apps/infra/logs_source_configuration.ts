@@ -17,6 +17,8 @@ export default ({ getPageObjects, getService }: FtrProviderContext) => {
   const retry = getService('retry');
 
   describe('Logs Source Configuration', function() {
+    this.tags('smoke');
+
     before(async () => {
       await esArchiver.load('empty_kibana');
     });

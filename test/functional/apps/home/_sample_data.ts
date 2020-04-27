@@ -32,6 +32,8 @@ export default function({ getService, getPageObjects }: FtrProviderContext) {
   const PageObjects = getPageObjects(['common', 'header', 'home', 'dashboard', 'timePicker']);
 
   describe('sample data', function describeIndexTests() {
+    this.tags('smoke');
+
     before(async () => {
       await security.testUser.setRoles(['kibana_admin', 'kibana_sample_admin']);
       await PageObjects.common.navigateToUrl('home', 'tutorial_directory/sampleData');

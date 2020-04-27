@@ -277,7 +277,7 @@ export default function({ getService }: FtrProviderContext) {
   const calendarId = `wizard-test-calendar_${Date.now()}`;
 
   describe('advanced job', function() {
-    this.tags(['mlqa']);
+    this.tags(['smoke', 'mlqa']);
     before(async () => {
       await esArchiver.loadIfNeeded('ml/ecommerce');
       await ml.testResources.createIndexPatternIfNeeded('ft_ecommerce', 'order_date');

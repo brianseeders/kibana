@@ -43,6 +43,8 @@ export default function({ getService, getPageObjects }) {
   const dashboardName = 'Dashboard Panel Controls Test';
 
   describe('dashboard panel controls', function viewEditModeTests() {
+    this.tags('smoke');
+
     before(async function() {
       await PageObjects.dashboard.initTests();
       await PageObjects.dashboard.preserveCrossAppState();

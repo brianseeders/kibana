@@ -34,7 +34,7 @@ export default function({ getService }: FtrProviderContext) {
   ];
 
   describe('file based', function() {
-    this.tags(['mlqa']);
+    this.tags(['smoke', 'mlqa']);
     before(async () => {
       await ml.testResources.setKibanaTimeZoneToUTC();
 

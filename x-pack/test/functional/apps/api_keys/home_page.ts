@@ -13,6 +13,7 @@ export default ({ getPageObjects, getService }: FtrProviderContext) => {
   const security = getService('security');
 
   describe('Home page', function() {
+    this.tags('smoke');
     before(async () => {
       await security.testUser.setRoles(['kibana_admin']);
       await pageObjects.common.navigateToApp('apiKeys');

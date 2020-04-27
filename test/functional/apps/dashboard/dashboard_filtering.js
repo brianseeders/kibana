@@ -38,7 +38,7 @@ export default function({ getService, getPageObjects }) {
   const PageObjects = getPageObjects(['common', 'dashboard', 'header', 'visualize', 'timePicker']);
 
   describe('dashboard filtering', function() {
-    this.tags('includeFirefox');
+    this.tags('smoke');
 
     before(async () => {
       await esArchiver.load('dashboard/current/kibana');

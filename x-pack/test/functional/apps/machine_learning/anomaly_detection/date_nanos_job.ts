@@ -166,7 +166,7 @@ export default function({ getService }: FtrProviderContext) {
   ];
 
   describe('job on data set with date_nanos time field', function() {
-    this.tags(['mlqa']);
+    this.tags(['smoke', 'mlqa']);
     before(async () => {
       await esArchiver.loadIfNeeded('ml/event_rate_nanos');
       await ml.testResources.createIndexPatternIfNeeded(

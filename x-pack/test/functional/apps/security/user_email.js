@@ -12,6 +12,7 @@ export default function({ getService, getPageObjects }) {
   const esArchiver = getService('esArchiver');
 
   describe('useremail', function() {
+    this.tags('smoke');
     before(async () => {
       await esArchiver.load('security/discover');
       await PageObjects.settings.navigateTo();

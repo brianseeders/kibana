@@ -21,7 +21,7 @@ export default function spaceSelectorFunctonalTests({
   ]);
 
   describe('Spaces', function() {
-    this.tags('includeFirefox');
+    this.tags('smoke');
     describe('Space Selector', () => {
       before(async () => {
         await esArchiver.load('spaces/selector');

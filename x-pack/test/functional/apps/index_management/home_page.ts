@@ -14,6 +14,7 @@ export default ({ getPageObjects, getService }: FtrProviderContext) => {
   const browser = getService('browser');
 
   describe('Home page', function() {
+    this.tags('smoke');
     before(async () => {
       await pageObjects.common.navigateToApp('indexManagement');
     });

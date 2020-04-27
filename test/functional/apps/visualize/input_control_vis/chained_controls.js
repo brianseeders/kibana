@@ -27,7 +27,7 @@ export default function({ getService, getPageObjects }) {
   const comboBox = getService('comboBox');
 
   describe('chained controls', function() {
-    this.tags('includeFirefox');
+    this.tags('smoke');
 
     before(async () => {
       await PageObjects.common.navigateToApp('visualize');
