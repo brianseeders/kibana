@@ -7,7 +7,7 @@ import { FtrProviderContext } from '../../ftr_provider_context';
 
 export default function({ loadTestFile }: FtrProviderContext) {
   describe('endpoint when the ingest manager fails to setup correctly', function() {
-    this.tags('ciGroup7');
+    this.tags('ciGroup13');
 
     loadTestFile(require.resolve('./landing_page'));
   });

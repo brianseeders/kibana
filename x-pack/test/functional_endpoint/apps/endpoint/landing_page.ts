@@ -12,7 +12,7 @@ export default ({ getPageObjects, getService }: FtrProviderContext) => {
   const testSubjects = getService('testSubjects');
 
   describe('Endpoint landing page', function() {
-    this.tags('ciGroup7');
+    this.tags('ciGroup13');
     before(async () => {
       await pageObjects.common.navigateToApp('endpoint');
     });

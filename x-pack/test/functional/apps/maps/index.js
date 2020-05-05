@@ -40,8 +40,12 @@ export default function({ loadTestFile, getService }) {
     });
 
     describe('', function() {
-      this.tags('ciGroup10');
+      this.tags('ciGroup16');
       loadTestFile(require.resolve('./es_geo_grid_source'));
+    });
+
+    describe('', function() {
+      this.tags('ciGroup10');
       loadTestFile(require.resolve('./es_pew_pew_source'));
       loadTestFile(require.resolve('./joins'));
       loadTestFile(require.resolve('./add_layer_panel'));

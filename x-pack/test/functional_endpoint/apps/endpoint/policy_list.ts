@@ -12,7 +12,7 @@ export default function({ getPageObjects, getService }: FtrProviderContext) {
 
   // FIXME: Skipped until we can figure out how to load data for Ingest
   describe.skip('Endpoint Policy List', function() {
-    this.tags(['ciGroup7']);
+    this.tags(['ciGroup13']);
     before(async () => {
       await pageObjects.common.navigateToUrlWithBrowserHistory('endpoint', '/policy');
       await pageObjects.endpoint.waitForTableToHaveData('policyTable');

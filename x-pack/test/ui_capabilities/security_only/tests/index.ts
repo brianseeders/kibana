@@ -12,7 +12,7 @@ export default function uiCapabilitesTests({ loadTestFile, getService }: FtrProv
   const securityService = getService('security');
 
   describe('ui capabilities', function() {
-    this.tags('ciGroup9');
+    this.tags('ciGroup18');
 
     before(async () => {
       for (const user of UserScenarios) {

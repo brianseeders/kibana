@@ -8,7 +8,7 @@ import { FtrProviderContext } from '../../../ftr_provider_context';
 
 export default function({ loadTestFile }: FtrProviderContext) {
   describe('security app - basic license', function() {
-    this.tags('ciGroup4');
+    this.tags('ciGroup17');
 
     loadTestFile(require.resolve('./role_mappings'));
   });
