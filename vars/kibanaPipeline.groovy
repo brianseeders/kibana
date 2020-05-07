@@ -263,8 +263,8 @@ def withFunctionalTaskQueue(Map options = [:], Closure closure) {
 
 def allCiTasks() {
   parallel([
-    'kibana-intake-agent': workers.intake('kibana-intake', './test/scripts/jenkins_unit.sh'),
-    'x-pack-intake-agent': workers.intake('x-pack-intake', './test/scripts/jenkins_xpack.sh'),
+    // 'kibana-intake-agent': workers.intake('kibana-intake', './test/scripts/jenkins_unit.sh'),
+    // 'x-pack-intake-agent': workers.intake('x-pack-intake', './test/scripts/jenkins_xpack.sh'),
     'kibana-functional-agent': {
       functionalTasks()
     },
@@ -279,12 +279,32 @@ def testTask(description, script) {
   }
 }
 
+def testTaskDocker(description, script) {
+  docker.image('kibana-ci').inside(testTask(description, script))
+}
+
+def buildDocker() {
+  docker.build("kibana-ci", "./ci/")
+}
+
 def functionalTasks() {
   def config = [name: 'parallel-worker', size: 'xxl', ramDisk: true]
 
   workers.ci(config) {
     catchErrors {
       withFunctionalTaskQueue(parallel: 24) { testPlan ->
+
+        task {
+          buildDocker()
+          tasks([
+            testTaskDocker('run:test_jest_integration', 'yarn run grunt run:test_jest_integration'),
+            testTaskDocker('run:test_karma_ci', 'yarn run grunt run:test_karma_ci'),
+            testTaskDocker('run:apiIntegrationTests', 'yarn run grunt run:apiIntegrationTests'),
+            testTaskDocker('X-Pack Karma', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Karma Tests" yarn test:karma'),
+          ])
+        }
+
+        return
 
         tasks([
           testTask('run:eslint', 'yarn run grunt run:eslint'),
