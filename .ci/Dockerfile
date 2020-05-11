@@ -15,3 +15,4 @@ RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - 
   --no-install-recommends \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+COPY .ci/bash_standard_lib.sh /usr/local/bin/bash_standard_lib.sh
