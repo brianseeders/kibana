@@ -280,7 +280,7 @@ def testTask(description, script) {
 }
 
 def testTaskDocker(description, script) {
-  docker.image('kibana-ci').inside(testTask(description, script))
+  docker.image('kibana-ci').inside('-v /var/lib/jenkins:/var/lib/jenkins', testTask(description, script))
 }
 
 def buildDocker() {
