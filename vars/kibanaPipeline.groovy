@@ -284,7 +284,7 @@ def testTaskDocker(description, script) {
 }
 
 def buildDocker() {
-  docker.build("kibana-ci", "./ci/")
+  sh(script: 'docker build -t kibana-ci -f ./.ci/Dockerfile .', label: 'Build CI Docker image')
 }
 
 def functionalTasks() {

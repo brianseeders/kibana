@@ -10,7 +10,7 @@ def label(size) {
     case 'xl':
       return 'tests-xl'
     case 'xxl':
-      return 'tests-xxl'
+      return 'debian-tests-xxl'
   }
 
   error "unknown size '${size}'"
