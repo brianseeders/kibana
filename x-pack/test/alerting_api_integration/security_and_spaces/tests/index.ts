@@ -18,8 +18,6 @@ export default function alertingApiIntegrationTests({
   const esArchiver = getService('esArchiver');
 
   describe('alerting api integration security and spaces enabled', function() {
-    this.tags('ciGroup11');
-
     before(async () => {
       for (const space of Spaces) {
         await spacesService.create(space);
@@ -60,7 +58,14 @@ export default function alertingApiIntegrationTests({
       await esArchiver.unload('empty_kibana');
     });
 
-    loadTestFile(require.resolve('./actions'));
-    loadTestFile(require.resolve('./alerting'));
+    describe('', () => {
+      this.tags('ciGroup11');
+      loadTestFile(require.resolve('./actions'));
+    });
+
+    describe('', () => {
+      this.tags('ciGroup23');
+      loadTestFile(require.resolve('./alerting'));
+    });
   });
 }

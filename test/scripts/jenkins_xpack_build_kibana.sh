@@ -39,7 +39,10 @@ node scripts/functional_tests --assert-none-excluded \
   --include-tag ciGroup18 \
   --include-tag ciGroup19 \
   --include-tag ciGroup20 \
-  --include-tag ciGroup21
+  --include-tag ciGroup21 \
+  --include-tag ciGroup22 \
+  --include-tag ciGroup23 \
+  --include-tag ciGroup24
 
 # Do not build kibana for code coverage run
 if [[ -z "$CODE_COVERAGE" ]] ; then
