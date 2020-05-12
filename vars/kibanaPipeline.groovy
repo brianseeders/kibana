@@ -306,7 +306,7 @@ def functionalTasks() {
           ])
         }
 
-        return
+        // return
 
         tasks([
           testTask('run:eslint', 'yarn run grunt run:eslint'),
