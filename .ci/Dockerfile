@@ -1,4 +1,6 @@
-FROM node:10
+ARG NODE_VERSION=10.19.0
+
+FROM node:${NODE_VERSION} AS base
 
 RUN apt-get update && \
     apt-get -y install xvfb gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 \
@@ -15,4 +17,17 @@ RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - 
   --no-install-recommends \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+RUN LATEST_VAULT_RELEASE=$(curl -s https://api.github.com/repos/hashicorp/vault/tags | jq --raw-output .[0].name[1:]) \
+  && curl -L https://releases.hashicorp.com/vault/${LATEST_VAULT_RELEASE}/vault_${LATEST_VAULT_RELEASE}_linux_amd64.zip -o vault.zip \
+  && unzip vault.zip \
+  && rm vault.zip \
+  && chmod +x vault \
+  && mv vault /usr/local/bin/vault
+
+RUN groupadd -r kibana && useradd -r -g kibana kibana && mkdir /home/kibana && chown kibana:kibana /home/kibana
+
 COPY .ci/bash_standard_lib.sh /usr/local/bin/bash_standard_lib.sh
+RUN chmod +x /usr/local/bin/bash_standard_lib.sh
+
+RUN chown kibana /app
+USER kibana
