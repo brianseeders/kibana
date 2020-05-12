@@ -8,24 +8,22 @@ import { EuiFlexGroup, EuiFlexItem, EuiSpacer } from '@elastic/eui';
 import React, { useEffect } from 'react';
 import styled from 'styled-components';
 import { i18n } from '@kbn/i18n';
-import { useUptimeTelemetry, UptimePage, useGetUrlParams } from '../hooks';
+import { useGetUrlParams } from '../hooks';
 import { stringifyUrlParams } from '../lib/helper/stringify_url_params';
 import { PageHeader } from './page_header';
-import { DataPublicPluginSetup, IIndexPattern } from '../../../../../src/plugins/data/public';
+import { IIndexPattern } from '../../../../../src/plugins/data/public';
 import { useUpdateKueryString } from '../hooks';
 import { useBreadcrumbs } from '../hooks/use_breadcrumbs';
 import { useTrackPageview } from '../../../observability/public';
 import { MonitorList } from '../components/overview/monitor_list/monitor_list_container';
 import { EmptyState, FilterGroup, KueryBar, ParsingErrorCallout } from '../components/overview';
 import { StatusPanel } from '../components/overview/status_panel';
+import { useKibana } from '../../../../../src/plugins/kibana_react/public';
 
-interface OverviewPageProps {
-  autocomplete: DataPublicPluginSetup['autocomplete'];
+interface Props {
   indexPattern: IIndexPattern | null;
   setEsKueryFilters: (esFilters: string) => void;
 }
-
-type Props = OverviewPageProps;
 
 const EuiFlexItemStyled = styled(EuiFlexItem)`
   && {
@@ -36,11 +34,15 @@ const EuiFlexItemStyled = styled(EuiFlexItem)`
   }
 `;
 
-export const OverviewPageComponent = ({ autocomplete, indexPattern, setEsKueryFilters }: Props) => {
+export const OverviewPageComponent = React.memo(({ indexPattern, setEsKueryFilters }: Props) => {
   const { absoluteDateRangeStart, absoluteDateRangeEnd, ...params } = useGetUrlParams();
   const { search, filters: urlFilters } = params;
 
-  useUptimeTelemetry(UptimePage.Overview);
+  const {
+    services: {
+      data: { autocomplete },
+    },
+  } = useKibana();
 
   useTrackPageview({ app: 'uptime', path: 'overview' });
   useTrackPageview({ app: 'uptime', path: 'overview', delay: 15000 });
@@ -59,6 +61,7 @@ export const OverviewPageComponent = ({ autocomplete, indexPattern, setEsKueryFi
   });
 
   useBreadcrumbs([]); // No extra breadcrumbs on overview
+
   return (
     <>
       <PageHeader headingText={heading} extraLinks={true} datePicker={true} />
@@ -85,4 +88,4 @@ export const OverviewPageComponent = ({ autocomplete, indexPattern, setEsKueryFi
       </EmptyState>
     </>
   );
-};
+});
