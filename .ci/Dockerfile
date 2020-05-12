@@ -29,5 +29,4 @@ RUN groupadd -r kibana && useradd -r -g kibana kibana && mkdir /home/kibana && c
 COPY .ci/bash_standard_lib.sh /usr/local/bin/bash_standard_lib.sh
 RUN chmod +x /usr/local/bin/bash_standard_lib.sh
 
-RUN chown kibana /app
 USER kibana
