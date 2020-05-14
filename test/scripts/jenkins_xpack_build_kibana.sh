@@ -55,5 +55,5 @@ if [[ -z "$CODE_COVERAGE" ]] ; then
   tar -xzf "$linuxBuild" -C "$installDir" --strip=1
 
   mkdir -p "$WORKSPACE/kibana-build-xpack"
-  cp -R install/kibana/. $WORKSPACE/kibana-build-xpack/
+  cp -pR install/kibana/. $WORKSPACE/kibana-build-xpack/
 fi

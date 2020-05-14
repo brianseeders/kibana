@@ -11,16 +11,16 @@ if [[ -z "$CODE_COVERAGE" ]]; then
 
   if [[ ! -d $destDir ]]; then
     mkdir -p $destDir
-    cp -R "$WORKSPACE/kibana-build-oss/." $destDir/
+    cp -pR "$WORKSPACE/kibana-build-oss/." $destDir/
 
-    # if [[ "$TASK_QUEUE_PROCESS_ID" ]]; then
-    #   echo " -> building kibana platform plugins"
-    #   node scripts/build_kibana_platform_plugins \
-    #     --oss \
-    #     --scan-dir "$KIBANA_DIR/test/plugin_functional/plugins" \
-    #     --workers 4 \
-    #     --verbose;
-    # fi
+    if [[ "$TASK_QUEUE_PROCESS_ID" ]]; then
+      echo " -> building kibana platform plugins"
+      node scripts/build_kibana_platform_plugins \
+        --oss \
+        --scan-dir "$KIBANA_DIR/test/plugin_functional/plugins" \
+        --workers 2 \
+        --verbose;
+    fi
   fi
 
   export KIBANA_INSTALL_DIR="$destDir"
