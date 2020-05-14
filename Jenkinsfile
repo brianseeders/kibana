@@ -53,6 +53,10 @@ kibanaPipeline(timeoutMinutes: 135, checkPrChanges: true) {
       }
     }
 
+    catchErrors {
+      githubStatus.post()
+    }
+
     retryable.printFlakyFailures()
     kibanaPipeline.sendMail()
   }
