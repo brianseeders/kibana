@@ -2,12 +2,14 @@
 
 source src/dev/ci_setup/setup_env.sh
 
-echo " -> building kibana platform plugins"
-node scripts/build_kibana_platform_plugins \
-  --oss \
-  --scan-dir "$KIBANA_DIR/test/plugin_functional/plugins" \
-  --scan-dir "$KIBANA_DIR/test/interpreter_functional/plugins" \
-  --verbose;
+if [[ ! "$TASK_QUEUE_PROCESS_ID" ]]; then
+  echo " -> building kibana platform plugins"
+  node scripts/build_kibana_platform_plugins \
+    --oss \
+    --scan-dir "$KIBANA_DIR/test/plugin_functional/plugins" \
+    --scan-dir "$KIBANA_DIR/test/interpreter_functional/plugins" \
+    --verbose;
+fi
 
 # doesn't persist, also set in kibanaPipeline.groovy
 export KBN_NP_PLUGINS_BUILT=true

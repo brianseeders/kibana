@@ -294,6 +294,31 @@ def buildDocker() {
   sh(script: 'docker build -t kibana-ci -f ./.ci/Dockerfile .', label: 'Build CI Docker image')
 }
 
+def buildOssPlugins() {
+  bash("""
+    source test/scripts/jenkins_test_setup.sh
+    node scripts/build_kibana_platform_plugins \
+      --oss \
+      --scan-dir "\$KIBANA_DIR/test/plugin_functional/plugins" \
+      --workers 12 \
+      --verbose;
+  """, "Build OSS Plugins")
+}
+
+def buildXpackPlugins() {
+  bash("""
+    source test/scripts/jenkins_test_setup.sh
+    node scripts/build_kibana_platform_plugins \
+      --scan-dir "\$XPACK_DIR/test/plugin_functional/plugins" \
+      --scan-dir "\$XPACK_DIR/test/functional_with_es_ssl/fixtures/plugins" \
+      --scan-dir "\$XPACK_DIR/test/alerting_api_integration/plugins" \
+      --scan-dir "\$XPACK_DIR/test/plugin_api_integration/plugins" \
+      --scan-dir "\$XPACK_DIR/test/plugin_api_perf/plugins" \
+      --workers 36 \
+      --verbose;
+  """, "Build X-Pack Plugins")
+}
+
 def functionalTasks() {
   def config = [name: 'parallel-worker', size: 'xxl', ramDisk: true]
 
@@ -301,20 +326,20 @@ def functionalTasks() {
     catchErrors {
       withFunctionalTaskQueue(parallel: 24) { testPlan ->
 
-        task {
-          buildDocker()
-          tasks([
-            testTaskDocker('run:test_jest_integration', 'yarn run grunt run:test_jest_integration'),
-            testTaskDocker('run:mocha', 'yarn run grunt run:mocha'),
-            testTaskDocker('run:test_karma_ci', 'yarn run grunt run:test_karma_ci'),
-            // testTaskDocker('run:apiIntegrationTests', 'yarn run grunt run:apiIntegrationTests'),
-            testTaskDocker('X-Pack Karma', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Karma Tests" yarn test:karma'),
-          ])
-        }
+        parallel([
+          docker: { buildDocker() },
+          ossPlugins: { buildOssPlugins() },
+          xpackPlugins: { buildXpackPlugins() },
+        ])
 
         // return
 
         tasks([
+          testTaskDocker('run:test_jest_integration', 'yarn run grunt run:test_jest_integration'),
+          testTaskDocker('run:mocha', 'yarn run grunt run:mocha'),
+          testTaskDocker('run:test_karma_ci', 'yarn run grunt run:test_karma_ci'),
+          // testTaskDocker('run:apiIntegrationTests', 'yarn run grunt run:apiIntegrationTests'),
+          testTaskDocker('X-Pack Karma', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Karma Tests" yarn test:karma'),
           testTask('run:eslint', 'yarn run grunt run:eslint'),
           testTask('run:sasslint', 'yarn run grunt run:sasslint'),
           testTask('run:checkTsProjects', 'yarn run grunt run:checkTsProjects'),
