@@ -20,4 +20,9 @@ ln -s ${WORKSPACE}/kibana/node_modules/.??* node_modules/
 
 # Copy @kbn instead of symlinking it. It's small and many path-related things (e.g. REPO_ROOT) don't work correctly if it is symlinked
 unlink node_modules/@kbn
+unlink node_modules/css-loader
+unlink node_modules/style-loader
+
 cp -R ${WORKSPACE}/kibana/node_modules/@kbn node_modules/
+cp -R ${WORKSPACE}/kibana/node_modules/css-loader node_modules/
+cp -R ${WORKSPACE}/kibana/node_modules/style-loader node_modules/

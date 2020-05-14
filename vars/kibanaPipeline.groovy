@@ -281,7 +281,12 @@ def testTask(description, script) {
 
 def testTaskDocker(description, script) {
   return {
-    docker.image('kibana-ci').inside(" -v '${env.JENKINS_HOME}:${env.JENKINS_HOME}' -v '/dev/shm/workspace:/dev/shm/workspace' --shm-size 2GB", testTask(description, script))
+    docker
+      .image('kibana-ci')
+      .inside(
+        " -v '${env.JENKINS_HOME}:${env.JENKINS_HOME}' -v '/dev/shm/workspace:/dev/shm/workspace' --shm-size 2GB --cpus 4",
+        testTask(description, script)
+      )
   }
 }
 
