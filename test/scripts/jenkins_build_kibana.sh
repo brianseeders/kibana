@@ -21,5 +21,5 @@ if [[ -z "$CODE_COVERAGE" ]] ; then
   node scripts/build --debug --oss
 
   mkdir -p "$WORKSPACE/kibana-build-oss"
-  cp -R build/oss/kibana-*-SNAPSHOT-linux-x86_64/* $WORKSPACE/kibana-build-oss/
+  cp -R build/oss/kibana-*-SNAPSHOT-linux-x86_64/. $WORKSPACE/kibana-build-oss/
 fi

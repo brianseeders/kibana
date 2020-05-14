@@ -300,8 +300,9 @@ def functionalTasks() {
           buildDocker()
           tasks([
             testTaskDocker('run:test_jest_integration', 'yarn run grunt run:test_jest_integration'),
+            testTaskDocker('run:mocha', 'yarn run grunt run:mocha'),
             testTaskDocker('run:test_karma_ci', 'yarn run grunt run:test_karma_ci'),
-            testTaskDocker('run:apiIntegrationTests', 'yarn run grunt run:apiIntegrationTests'),
+            // testTaskDocker('run:apiIntegrationTests', 'yarn run grunt run:apiIntegrationTests'),
             testTaskDocker('X-Pack Karma', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Karma Tests" yarn test:karma'),
           ])
         }
@@ -320,13 +321,13 @@ def functionalTasks() {
           testTask('run:licenses', 'yarn run grunt run:licenses'),
           testTask('run:verifyDependencyVersions', 'yarn run grunt run:verifyDependencyVersions'),
           testTask('run:verifyNotice', 'yarn run grunt run:verifyNotice'),
-          testTask('run:mocha', 'yarn run grunt run:mocha'),
+          // testTaskDocker('run:mocha', 'yarn run grunt run:mocha'),
           testTask('run:test_jest', 'yarn run grunt run:test_jest'),
           // testTask('run:test_jest_integration', 'yarn run grunt run:test_jest_integration'),
           testTask('run:test_projects', 'yarn run grunt run:test_projects'),
           // testTask('run:test_karma_ci', 'yarn run grunt run:test_karma_ci'),
           testTask('run:test_hardening', 'yarn run grunt run:test_hardening'),
-          // testTask('run:apiIntegrationTests', 'yarn run grunt run:apiIntegrationTests'),
+          testTask('run:apiIntegrationTests', 'yarn run grunt run:apiIntegrationTests'),
 
           // testTask('X-Pack Karma', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Karma Tests" yarn test:karma'),
           testTask('X-Pack SIEM cyclic dependency', 'cd x-pack; checks-reporter-with-killswitch "X-Pack SIEM cyclic dependency test" node plugins/siem/scripts/check_circular_deps'),
