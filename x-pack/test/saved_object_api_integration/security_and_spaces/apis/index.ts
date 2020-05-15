@@ -12,22 +12,27 @@ export default function({ getService, loadTestFile }: FtrProviderContext) {
   const supertest = getService('supertest');
 
   describe('saved objects security and spaces enabled', function() {
-    this.tags('ciGroup11');
-
     before(async () => {
       await createUsersAndRoles(es, supertest);
     });
 
-    loadTestFile(require.resolve('./bulk_create'));
-    loadTestFile(require.resolve('./bulk_get'));
-    loadTestFile(require.resolve('./bulk_update'));
-    loadTestFile(require.resolve('./create'));
-    loadTestFile(require.resolve('./delete'));
-    loadTestFile(require.resolve('./export'));
-    loadTestFile(require.resolve('./find'));
-    loadTestFile(require.resolve('./get'));
-    loadTestFile(require.resolve('./import'));
-    loadTestFile(require.resolve('./resolve_import_errors'));
-    loadTestFile(require.resolve('./update'));
+    describe('', () => {
+      this.tags('ciGroup15');
+      loadTestFile(require.resolve('./bulk_create'));
+      loadTestFile(require.resolve('./bulk_get'));
+      loadTestFile(require.resolve('./bulk_update'));
+      loadTestFile(require.resolve('./create'));
+      loadTestFile(require.resolve('./delete'));
+    });
+
+    describe('', () => {
+      this.tags('ciGroup5');
+      loadTestFile(require.resolve('./export'));
+      loadTestFile(require.resolve('./find'));
+      loadTestFile(require.resolve('./get'));
+      loadTestFile(require.resolve('./import'));
+      loadTestFile(require.resolve('./resolve_import_errors'));
+      loadTestFile(require.resolve('./update'));
+    });
   });
 }
