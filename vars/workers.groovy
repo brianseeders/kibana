@@ -51,6 +51,11 @@ def base(Map params, Closure closure) {
       }
     }
 
+    sh(
+      script: "mkdir -p ${env.WORKSPACE}/tmp",
+      label: "Create custom temp directory"
+    )
+
     def scmVars = [:]
 
     if (config.scm) {
@@ -88,6 +93,7 @@ def base(Map params, Closure closure) {
       "PR_AUTHOR=${env.ghprbPullAuthorLogin ?: ''}",
       "TEST_BROWSER_HEADLESS=1",
       "GIT_BRANCH=${scmVars.GIT_BRANCH ?: ''}",
+      "TMPDIR=${env.WORKSPACE}/tmp", // For Chrome and anything else that respects it
     ]) {
       withCredentials([
         string(credentialsId: 'vault-addr', variable: 'VAULT_ADDR'),
