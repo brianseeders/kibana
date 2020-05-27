@@ -7,7 +7,7 @@
 import { FtrProviderContext } from '../../ftr_provider_context';
 
 export default ({ loadTestFile }: FtrProviderContext) => {
-  describe('Ingest pipelines app', function() {
+  describe('Ingest pipelines app', function () {
     this.tags('ciGroup15');
     loadTestFile(require.resolve('./ingest_pipelines'));
   });

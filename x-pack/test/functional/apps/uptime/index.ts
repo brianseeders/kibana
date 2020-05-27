@@ -18,7 +18,7 @@ export default ({ loadTestFile, getService }: FtrProviderContext) => {
   const server = getService('kibanaServer');
   const uptime = getService('uptime');
 
-  describe('Uptime app', function() {
+  describe('Uptime app', function () {
     this.tags('ciGroup14');
 
     beforeEach('delete settings', async () => {
