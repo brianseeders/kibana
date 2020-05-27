@@ -394,7 +394,7 @@ def functionalTasks() {
         task {
           buildXpack()
 
-          def ciGroups = 1..24
+          def ciGroups = 1..10
           tasks(ciGroups.collect { xpackCiGroupProcess(it) })
 
           tasks([

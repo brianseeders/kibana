@@ -28,7 +28,7 @@ export default function ({ loadTestFile, getService }) {
     });
 
     describe('', function () {
-      this.tags('ciGroup9');
+      this.tags('ciGroup7');
       loadTestFile(require.resolve('./documents_source'));
       loadTestFile(require.resolve('./blended_vector_layer'));
       loadTestFile(require.resolve('./vector_styling'));
@@ -40,12 +40,8 @@ export default function ({ loadTestFile, getService }) {
     });
 
     describe('', function () {
-      this.tags('ciGroup16');
-      loadTestFile(require.resolve('./es_geo_grid_source'));
-    });
-
-    describe('', function () {
       this.tags('ciGroup10');
+      loadTestFile(require.resolve('./es_geo_grid_source'));
       loadTestFile(require.resolve('./es_pew_pew_source'));
       loadTestFile(require.resolve('./joins'));
       loadTestFile(require.resolve('./add_layer_panel'));

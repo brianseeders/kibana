@@ -7,7 +7,7 @@ import { FtrProviderContext } from '../../ftr_provider_context';
 
 export default function spacesApp({ loadTestFile }: FtrProviderContext) {
   describe('Spaces app', function spacesAppTestSuite() {
-    this.tags('ciGroup17');
+    this.tags('ciGroup4');
 
     loadTestFile(require.resolve('./copy_saved_objects'));
     loadTestFile(require.resolve('./feature_controls/spaces_security'));

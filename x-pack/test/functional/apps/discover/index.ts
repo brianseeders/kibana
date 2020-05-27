@@ -7,7 +7,7 @@ import { FtrProviderContext } from '../../ftr_provider_context';
 
 export default function ({ loadTestFile }: FtrProviderContext) {
   describe('discover', function () {
-    this.tags('ciGroup12');
+    this.tags('ciGroup8');
 
     loadTestFile(require.resolve('./feature_controls'));
     loadTestFile(require.resolve('./preserve_url'));
