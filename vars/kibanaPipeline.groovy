@@ -213,11 +213,15 @@ def doSetup() {
 }
 
 def buildOss() {
-  bash("./test/scripts/jenkins_build_kibana.sh", "Build OSS/Default Kibana")
+  withEnv(['KBN_OPTIMIZER_MAX_WORKERS=24']) {
+    bash("./test/scripts/jenkins_build_kibana.sh", "Build OSS/Default Kibana")
+  }
 }
 
 def buildXpack() {
-  bash("./test/scripts/jenkins_xpack_build_kibana.sh", "Build X-Pack Kibana")
+  withEnv(['KBN_OPTIMIZER_MAX_WORKERS=24']) {
+    bash("./test/scripts/jenkins_xpack_build_kibana.sh", "Build X-Pack Kibana")
+  }
 }
 
 def runErrorReporter() {
