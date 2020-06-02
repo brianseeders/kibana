@@ -263,11 +263,6 @@ def call(Map params = [:], Closure closure) {
   }
 }
 
-// Only works inside of a worker after scm checkout
-def getTargetBranch() {
-  return env.ghprbTargetBranch ?: (env.GIT_BRANCH - ~/^[^\/]+\//)
-}
-
 def withFunctionalTaskQueue(Map options = [:], Closure closure) {
   def setupClosure = {
     bash("${env.WORKSPACE}/kibana/test/scripts/jenkins_setup_parallel_workspace.sh", "Set up duplicate workspace for parallel process")
@@ -278,16 +273,6 @@ def withFunctionalTaskQueue(Map options = [:], Closure closure) {
   withTaskQueue(config) {
     closure.call()
   }
-}
-
-def allCiTasks() {
-  parallel([
-    // 'kibana-intake-agent': workers.intake('kibana-intake', './test/scripts/jenkins_unit.sh'),
-    // 'x-pack-intake-agent': workers.intake('x-pack-intake', './test/scripts/jenkins_xpack.sh'),
-    'kibana-functional-agent': {
-      functionalTasks()
-    },
-  ])
 }
 
 def testTask(description, script) {
@@ -339,7 +324,7 @@ def buildXpackPlugins() {
   """, "Build X-Pack Plugins")
 }
 
-def functionalTasks() {
+def allCiTasks() {
   def config = [name: 'parallel-worker', size: 'xxl', ramDisk: true]
 
   workers.ci(config) {
@@ -418,8 +403,6 @@ def functionalTasks() {
         }
       }
     }
-
-    // functionalTests.uploadMetrics()
   }
 }
 
