@@ -365,20 +365,20 @@ def ossTasks() {
 
 def xpackTests() {
   task {
-    buildOss()
+    buildXpack()
 
-    def ciGroups = 1..12
-    tasks(ciGroups.collect { ossCiGroupProcess(it) })
+    def ciGroups = 1..14
+    tasks(ciGroups.collect { xpackCiGroupProcess(it) })
 
     tasks([
-      functionalTestProcess('oss-firefox', './test/scripts/jenkins_firefox_smoke.sh'),
-      functionalTestProcess('oss-accessibility', './test/scripts/jenkins_accessibility.sh'),
-      functionalTestProcess('oss-pluginFunctional', './test/scripts/jenkins_plugin_functional.sh')
-      // functionalTestProcess('oss-visualRegression', './test/scripts/jenkins_visual_regression.sh'),
+      functionalTestProcess('xpack-firefox', './test/scripts/jenkins_xpack_firefox_smoke.sh'),
+      functionalTestProcess('xpack-accessibility', './test/scripts/jenkins_xpack_accessibility.sh'),
+      // functionalTestProcess('xpack-visualRegression', './test/scripts/jenkins_xpack_visual_regression.sh'),
     ])
 
-    // Does this stuff require running out of the same workspace that the build happened in?
-    functionalTestProcess('oss-pluginFunctional', './test/scripts/jenkins_plugin_functional.sh')()
+    whenChanged(['x-pack/plugins/siem/', 'x-pack/legacy/plugins/siem/', 'x-pack/test/siem_cypress/']) {
+      task(functionalTestProcess('xpack-siemCypress', './test/scripts/jenkins_siem_cypress.sh'))
+    }
   }
 }
 
