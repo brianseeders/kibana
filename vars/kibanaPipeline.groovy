@@ -299,29 +299,11 @@ def buildDocker() {
 }
 
 def buildOssPlugins() {
-  bash("""
-    source test/scripts/jenkins_test_setup.sh
-    node scripts/build_kibana_platform_plugins \
-      --oss \
-      --scan-dir "\$KIBANA_DIR/test/plugin_functional/plugins" \
-      --scan-dir "\$KIBANA_DIR/test/interpreter_functional/plugins" \
-      --workers 12 \
-      --verbose;
-  """, "Build OSS Plugins")
+  bash('./test/scripts/jenkins_build_plugins.sh', 'Build OSS Plugins')
 }
 
 def buildXpackPlugins() {
-  bash("""
-    source test/scripts/jenkins_test_setup.sh
-    node scripts/build_kibana_platform_plugins \
-      --scan-dir "\$XPACK_DIR/test/plugin_functional/plugins" \
-      --scan-dir "\$XPACK_DIR/test/functional_with_es_ssl/fixtures/plugins" \
-      --scan-dir "\$XPACK_DIR/test/alerting_api_integration/plugins" \
-      --scan-dir "\$XPACK_DIR/test/plugin_api_integration/plugins" \
-      --scan-dir "\$XPACK_DIR/test/plugin_api_perf/plugins" \
-      --workers 36 \
-      --verbose;
-  """, "Build X-Pack Plugins")
+  bash('./test/scripts/jenkins_xpack_build_plugins.sh', 'Build X-Pack Plugins')
 }
 
 def allCiTasks() {
@@ -333,6 +315,8 @@ def allCiTasks() {
 
         parallel([
           docker: { buildDocker() },
+
+          // There are integration tests etc that require the plugins to be built first, so let's go ahead and build them before set up the parallel workspaces
           ossPlugins: { buildOssPlugins() },
           xpackPlugins: { buildXpackPlugins() },
         ])
@@ -340,11 +324,12 @@ def allCiTasks() {
         // return
 
         tasks([
+          // These 4 tasks require isolation because of hard-coded, conflicting ports and such, so let's use Docker here
           testTaskDocker('run:test_jest_integration', 'yarn run grunt run:test_jest_integration'),
           testTaskDocker('run:mocha', 'yarn run grunt run:mocha'),
           testTaskDocker('run:test_karma_ci', 'yarn run grunt run:test_karma_ci'),
-          // testTaskDocker('run:apiIntegrationTests', 'yarn run grunt run:apiIntegrationTests'),
           testTaskDocker('X-Pack Karma', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Karma Tests" yarn test:karma'),
+
           testTask('run:eslint', 'yarn run grunt run:eslint'),
           testTask('run:sasslint', 'yarn run grunt run:sasslint'),
           testTask('run:checkTsProjects', 'yarn run grunt run:checkTsProjects'),
@@ -356,15 +341,11 @@ def allCiTasks() {
           testTask('run:licenses', 'yarn run grunt run:licenses'),
           testTask('run:verifyDependencyVersions', 'yarn run grunt run:verifyDependencyVersions'),
           testTask('run:verifyNotice', 'yarn run grunt run:verifyNotice'),
-          // testTaskDocker('run:mocha', 'yarn run grunt run:mocha'),
           testTask('run:test_jest', 'yarn run grunt run:test_jest'),
-          // testTask('run:test_jest_integration', 'yarn run grunt run:test_jest_integration'),
           testTask('run:test_projects', 'yarn run grunt run:test_projects'),
-          // testTask('run:test_karma_ci', 'yarn run grunt run:test_karma_ci'),
           testTask('run:test_hardening', 'yarn run grunt run:test_hardening'),
           testTask('run:apiIntegrationTests', 'yarn run grunt run:apiIntegrationTests'),
 
-          // testTask('X-Pack Karma', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Karma Tests" yarn test:karma'),
           testTask('X-Pack SIEM cyclic dependency', 'cd x-pack; checks-reporter-with-killswitch "X-Pack SIEM cyclic dependency test" node plugins/siem/scripts/check_circular_deps'),
           testTask('X-Pack Jest', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Jest" node --max-old-space-size=6144 scripts/jest --ci --verbose --maxWorkers=10'),
         ])
