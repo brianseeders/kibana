@@ -306,83 +306,6 @@ def buildXpackPlugins() {
   bash('./test/scripts/jenkins_xpack_build_plugins.sh', 'Build X-Pack Plugins')
 }
 
-def intakeTasks() {
-  intakeOtherTasks()
-  intakeTestTasks()
-}
-
-def intakeOtherTasks() {
-  tasks([
-    intakeTask('run:eslint', 'yarn run grunt run:eslint'),
-    intakeTask('run:sasslint', 'yarn run grunt run:sasslint'),
-    intakeTask('run:checkTsProjects', 'yarn run grunt run:checkTsProjects'),
-    intakeTask('run:checkDocApiChanges', 'yarn run grunt run:checkDocApiChanges'),
-    intakeTask('run:typeCheck', 'yarn run grunt run:typeCheck'),
-    intakeTask('run:i18nCheck', 'yarn run grunt run:i18nCheck'),
-    intakeTask('run:checkFileCasing', 'yarn run grunt run:checkFileCasing'),
-    intakeTask('run:checkLockfileSymlinks', 'yarn run grunt run:checkLockfileSymlinks'),
-    intakeTask('run:licenses', 'yarn run grunt run:licenses'),
-    intakeTask('run:verifyDependencyVersions', 'yarn run grunt run:verifyDependencyVersions'),
-    intakeTask('run:verifyNotice', 'yarn run grunt run:verifyNotice'),
-    intakeTask('run:test_projects', 'yarn run grunt run:test_projects'),
-    intakeTask('run:test_hardening', 'yarn run grunt run:test_hardening'),
-  ])
-}
-
-def intakeTestTasks() {
-  tasks([
-    // These 4 tasks require isolation because of hard-coded, conflicting ports and such, so let's use Docker here
-    intakeTaskDocker('run:test_jest_integration', 'yarn run grunt run:test_jest_integration'),
-    intakeTaskDocker('run:mocha', 'yarn run grunt run:mocha'),
-    intakeTaskDocker('run:test_karma_ci', 'yarn run grunt run:test_karma_ci'),
-    intakeTaskDocker('X-Pack Karma', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Karma Tests" yarn test:karma'),
-
-    intakeTask('run:test_jest', 'yarn run grunt run:test_jest'),
-    intakeTask('run:apiIntegrationTests', 'yarn run grunt run:apiIntegrationTests'),
-    intakeTask('X-Pack SIEM cyclic dependency', 'cd x-pack; checks-reporter-with-killswitch "X-Pack SIEM cyclic dependency test" node plugins/security_solution/scripts/check_circular_deps'),
-    intakeTask('X-Pack List cyclic dependency', 'cd x-pack; checks-reporter-with-killswitch "X-Pack List cyclic dependency test" node plugins/lists/scripts/check_circular_deps'),
-    intakeTask('X-Pack Jest', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Jest" node --max-old-space-size=6144 scripts/jest --ci --verbose --maxWorkers=10'),
-  ])
-}
-
-def ossTasks() {
-  task {
-    buildOss()
-
-    def ciGroups = 1..12
-    tasks(ciGroups.collect { ossCiGroupProcess(it) })
-
-    tasks([
-      functionalTestProcess('oss-firefox', './test/scripts/jenkins_firefox_smoke.sh'),
-      functionalTestProcess('oss-accessibility', './test/scripts/jenkins_accessibility.sh'),
-      functionalTestProcess('oss-pluginFunctional', './test/scripts/jenkins_plugin_functional.sh')
-      // functionalTestProcess('oss-visualRegression', './test/scripts/jenkins_visual_regression.sh'),
-    ])
-
-    // Does this stuff require running out of the same workspace that the build happened in?
-    functionalTestProcess('oss-pluginFunctional', './test/scripts/jenkins_plugin_functional.sh')()
-  }
-}
-
-def xpackTests() {
-  task {
-    buildXpack()
-
-    def ciGroups = 1..14
-    tasks(ciGroups.collect { xpackCiGroupProcess(it) })
-
-    tasks([
-      functionalTestProcess('xpack-firefox', './test/scripts/jenkins_xpack_firefox_smoke.sh'),
-      functionalTestProcess('xpack-accessibility', './test/scripts/jenkins_xpack_accessibility.sh'),
-      // functionalTestProcess('xpack-visualRegression', './test/scripts/jenkins_xpack_visual_regression.sh'),
-    ])
-
-    whenChanged(['x-pack/plugins/security_solution/', 'x-pack/test/security_solution_cypress/']) {
-      task(functionalTestProcess('xpack-securitySolutionCypress', './test/scripts/jenkins_security_solution_cypress.sh'))
-    }
-  }
-}
-
 def withTasks(Map params = [worker: [:]], Closure closure) {
   catchErrors {
     def config = [name: 'ci-worker', size: 'xxl', ramDisk: true] + (params.worker ?: [:])
@@ -407,9 +330,9 @@ def withTasks(Map params = [worker: [:]], Closure closure) {
 
 def allCiTasks() {
   withTasks {
-    intakeTasks()
-    ossTasks()
-    xpackTests()
+    tasks.intake()
+    tasks.functionalOss()
+    tasks.functionalXpack()
   }
 }
 
