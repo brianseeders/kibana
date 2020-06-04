@@ -339,7 +339,8 @@ def intakeTestTasks() {
 
     intakeTask('run:test_jest', 'yarn run grunt run:test_jest'),
     intakeTask('run:apiIntegrationTests', 'yarn run grunt run:apiIntegrationTests'),
-    intakeTask('X-Pack SIEM cyclic dependency', 'cd x-pack; checks-reporter-with-killswitch "X-Pack SIEM cyclic dependency test" node plugins/siem/scripts/check_circular_deps'),
+    intakeTask('X-Pack SIEM cyclic dependency', 'cd x-pack; checks-reporter-with-killswitch "X-Pack SIEM cyclic dependency test" node plugins/security_solution/scripts/check_circular_deps'),
+    intakeTask('X-Pack List cyclic dependency', 'cd x-pack; checks-reporter-with-killswitch "X-Pack List cyclic dependency test" node plugins/lists/scripts/check_circular_deps'),
     intakeTask('X-Pack Jest', 'cd x-pack; checks-reporter-with-killswitch "X-Pack Jest" node --max-old-space-size=6144 scripts/jest --ci --verbose --maxWorkers=10'),
   ])
 }
@@ -376,8 +377,8 @@ def xpackTests() {
       // functionalTestProcess('xpack-visualRegression', './test/scripts/jenkins_xpack_visual_regression.sh'),
     ])
 
-    whenChanged(['x-pack/plugins/siem/', 'x-pack/legacy/plugins/siem/', 'x-pack/test/siem_cypress/']) {
-      task(functionalTestProcess('xpack-siemCypress', './test/scripts/jenkins_siem_cypress.sh'))
+    whenChanged(['x-pack/plugins/security_solution/', 'x-pack/test/security_solution_cypress/']) {
+      task(functionalTestProcess('xpack-securitySolutionCypress', './test/scripts/jenkins_security_solution_cypress.sh'))
     }
   }
 }
