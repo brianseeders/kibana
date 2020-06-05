@@ -8,5 +8,5 @@ node scripts/build_kibana_platform_plugins \
   --scan-dir "$XPACK_DIR/test/alerting_api_integration/plugins" \
   --scan-dir "$XPACK_DIR/test/plugin_api_integration/plugins" \
   --scan-dir "$XPACK_DIR/test/plugin_api_perf/plugins" \
-  --workers 36 \
+  --workers 20 \
   --verbose
