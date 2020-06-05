@@ -268,7 +268,7 @@ def withFunctionalTaskQueue(Map options = [:], Closure closure) {
     bash("${env.WORKSPACE}/kibana/test/scripts/jenkins_setup_parallel_workspace.sh", "Set up duplicate workspace for parallel process")
   }
 
-  def config = [parallel: 24, setup: setupClosure] + options
+  def config = [parallel: 16, setup: setupClosure] + options
 
   withTaskQueue(config) {
     closure.call()
@@ -308,10 +308,10 @@ def buildXpackPlugins() {
 
 def withTasks(Map params = [worker: [:]], Closure closure) {
   catchErrors {
-    def config = [name: 'ci-worker', size: 'xxl', ramDisk: true] + (params.worker ?: [:])
+    def config = [name: 'ci-worker', size: 'xxl-test', ramDisk: true] + (params.worker ?: [:])
 
     workers.ci(config) {
-      withFunctionalTaskQueue(parallel: 24) {
+      withFunctionalTaskQueue(parallel: 16) {
         parallel([
           docker: { buildDocker() },
 
