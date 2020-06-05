@@ -58,7 +58,7 @@ def intakeTest() {
 }
 
 def functionalOss(Map params = [:]) {
-  def config = params ?: [ciGroups: true, firefox: true, accessibility: true, pluginFunctional: true, visualRegression: true]
+  def config = params ?: [ciGroups: true, firefox: true, accessibility: true, pluginFunctional: true, visualRegression: false]
 
   task {
     kibanaPipeline.buildOss()
@@ -87,7 +87,7 @@ def functionalOss(Map params = [:]) {
 }
 
 def functionalXpack(Map params = [:]) {
-  def config = params ?: [ciGroups: true, firefox: true, accessibility: true, pluginFunctional: true, visualRegression: true]
+  def config = params ?: [ciGroups: true, firefox: true, accessibility: true, pluginFunctional: true, visualRegression: false]
 
   task {
     kibanaPipeline.buildXpack()
