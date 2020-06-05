@@ -4,15 +4,17 @@
 def label(size) {
   switch(size) {
     case 's':
-      return 'linux && immutable'
+      return 'linux && immutable && docker'
     case 's-highmem':
-      return 'tests-s'
+      return 'tests-s && docker'
     case 'l':
-      return 'tests-l'
+      return 'tests-l && docker'
     case 'xl':
-      return 'tests-xl'
+      return 'tests-xl && docker'
     case 'xxl':
-      return 'debian-tests-xxl'
+      return 'tests-xxl && docker'
+    case 'xxl-test':
+      return 'tests-xxl-test && docker'
   }
 
   error "unknown size '${size}'"
