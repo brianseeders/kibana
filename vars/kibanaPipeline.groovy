@@ -90,19 +90,19 @@ def uploadGcsArtifact(uploadPrefix, pattern) {
 }
 
 def downloadCoverageArtifacts() {
-  def storageLocation = "gs://kibana-pipeline-testing/jobs/${env.JOB_NAME}/${BUILD_NUMBER}/coverage/"
+  def storageLocation = "gs://kibana-ci-artifacts/jobs/${env.JOB_NAME}/${BUILD_NUMBER}/coverage/"
   def targetLocation = "/tmp/downloaded_coverage"
 
   sh "mkdir -p '${targetLocation}' && gsutil -m cp -r '${storageLocation}' '${targetLocation}'"
 }
 
 def uploadCoverageArtifacts(prefix, pattern) {
-  def uploadPrefix = "kibana-pipeline-testing/jobs/${env.JOB_NAME}/${BUILD_NUMBER}/coverage/${prefix}"
+  def uploadPrefix = "kibana-ci-artifacts/jobs/${env.JOB_NAME}/${BUILD_NUMBER}/coverage/${prefix}"
   uploadGcsArtifact(uploadPrefix, pattern)
 }
 
 def withGcsArtifactUpload(workerName, closure) {
-  def uploadPrefix = "kibana-pipeline-testing/jobs/${env.JOB_NAME}/${BUILD_NUMBER}/${workerName}"
+  def uploadPrefix = "kibana-ci-artifacts/jobs/${env.JOB_NAME}/${BUILD_NUMBER}/${workerName}"
   def ARTIFACT_PATTERNS = [
     'target/kibana-*',
     'target/test-metrics/*',
@@ -142,7 +142,7 @@ def withGcsArtifactUpload(workerName, closure) {
 
   if (env.CODE_COVERAGE) {
     sh 'tar -czf kibana-coverage.tar.gz target/kibana-coverage/**/*'
-    uploadGcsArtifact("kibana-pipeline-testing/jobs/${env.JOB_NAME}/${BUILD_NUMBER}/coverage/${workerName}", 'kibana-coverage.tar.gz')
+    uploadGcsArtifact("kibana-ci-artifacts/jobs/${env.JOB_NAME}/${BUILD_NUMBER}/coverage/${workerName}", 'kibana-coverage.tar.gz')
   }
 }
 
@@ -263,7 +263,9 @@ def call(Map params = [:], Closure closure) {
   }
 }
 
-def withFunctionalTaskQueue(Map options = [:], Closure closure) {
+// Creates a task queue using withTaskQueue, and copies the bootstrapped kibana repo into each process's workspace
+// Note that node_modules are mostly symlinked to save time/space. See test/scripts/jenkins_setup_parallel_workspace.sh
+def withCiTaskQueue(Map options = [:], Closure closure) {
   def setupClosure = {
     bash("${env.WORKSPACE}/kibana/test/scripts/jenkins_setup_parallel_workspace.sh", "Set up duplicate workspace for parallel process")
   }
@@ -285,17 +287,21 @@ def intakeTask(description, script) {
 
 def intakeTaskDocker(description, script) {
   return {
-    docker
-      .image('kibana-ci')
-      .inside(
-        " -v '${env.JENKINS_HOME}:${env.JENKINS_HOME}' -v '/dev/shm/workspace:/dev/shm/workspace' --shm-size 2GB --cpus 4",
-        intakeTask(description, script)
-      )
+    withDocker(intakeTask(description, script))
   }
 }
 
 def buildDocker() {
   sh(script: 'docker build -t kibana-ci -f ./.ci/Dockerfile .', label: 'Build CI Docker image')
+}
+
+def withDocker(Closure closure) {
+  docker
+    .image('kibana-ci')
+    .inside(
+      " -v '${env.JENKINS_HOME}:${env.JENKINS_HOME}' -v '/dev/shm/workspace:/dev/shm/workspace' --shm-size 2GB --cpus 4",
+      closure
+    )
 }
 
 def buildOssPlugins() {
@@ -311,7 +317,7 @@ def withTasks(Map params = [worker: [:]], Closure closure) {
     def config = [name: 'ci-worker', size: 'xxl-test', ramDisk: true] + (params.worker ?: [:])
 
     workers.ci(config) {
-      withFunctionalTaskQueue(parallel: 16) {
+      withCiTaskQueue(parallel: 16) {
         parallel([
           docker: { buildDocker() },
 

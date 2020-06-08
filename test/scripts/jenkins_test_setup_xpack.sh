@@ -12,15 +12,6 @@ if [[ -z "$CODE_COVERAGE" ]]; then
   if [[ ! -d $destDir ]]; then
     mkdir -p $destDir
     cp -pR "$WORKSPACE/kibana-build-xpack/." $destDir/
-
-    # if [[ "$TASK_QUEUE_PROCESS_ID" ]]; then
-    #   echo " -> building kibana platform plugins"
-    #   node scripts/build_kibana_platform_plugins \
-    #     --scan-dir "$XPACK_DIR/test/plugin_functional/plugins" \
-    #     --scan-dir "$XPACK_DIR/test/functional_with_es_ssl/fixtures/plugins" \
-    #     --workers 2 \
-    #     --verbose;
-    # fi
   fi
 
   export KIBANA_INSTALL_DIR="$(realpath $destDir)"
