@@ -14,7 +14,7 @@ def label(size) {
     case 'xl':
       return 'tests-xl && docker'
     case 'xxl':
-      return 'debian-tests-xxl-test' // TODO fix this after gobld changes
+      return 'tests-xl-n2d && docker'
     case 'xxl-test':
       return 'tests-xxl-test && docker'
   }
