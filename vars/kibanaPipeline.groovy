@@ -249,6 +249,8 @@ def call(Map params = [:], Closure closure) {
       timestamps {
         ansiColor('xterm') {
           if (config.checkPrChanges && githubPr.isPr()) {
+            pipelineLibraryTests()
+
             print "Checking PR for changes to determine if CI needs to be run..."
 
             if (prChanges.areChangesSkippable()) {
@@ -339,6 +341,16 @@ def allCiTasks() {
     tasks.intake()
     tasks.functionalOss()
     tasks.functionalXpack()
+  }
+}
+
+def pipelineLibraryTests() {
+  whenChanged(['vars/', '.ci/pipeline-library/']) {
+    workers.base(size: 'flyweight', bootstrapped: false, ramDisk: false) {
+      dir('.ci/pipeline-library') {
+        sh './gradlew test'
+      }
+    }
   }
 }
 
