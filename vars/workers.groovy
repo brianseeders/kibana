@@ -14,9 +14,9 @@ def label(size) {
     case 'xl':
       return 'tests-xl && docker'
     case 'xxl':
-      return 'tests-xl-n2d && docker'
+      return 'tests-xl-n2 && docker'
     case 'xxl-test':
-      return 'tests-xl-n2d && docker'
+      return 'tests-xl-n2 && docker'
   }
 
   error "unknown size '${size}'"
