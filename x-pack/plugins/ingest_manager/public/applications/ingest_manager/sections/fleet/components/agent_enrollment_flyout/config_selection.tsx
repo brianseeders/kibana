@@ -10,7 +10,7 @@ import { FormattedMessage } from '@kbn/i18n/react';
 import { EuiSelect, EuiSpacer, EuiText, EuiButtonEmpty } from '@elastic/eui';
 import { AgentConfig } from '../../../../types';
 import { useGetEnrollmentAPIKeys } from '../../../../hooks';
-import { AgentConfigDatasourceBadges } from '../agent_config_datasource_badges';
+import { AgentConfigPackageBadges } from '../agent_config_package_badges';
 
 interface Props {
   agentConfigs: AgentConfig[];
@@ -36,7 +36,7 @@ export const EnrollmentStepAgentConfig: React.FC<Props> = ({ agentConfigs, onKey
     }
 
     return enrollmentAPIKeysRequest.data.list.filter(
-      key => key.config_id === selectedState.agentConfigId
+      (key) => key.config_id === selectedState.agentConfigId
     );
   }, [enrollmentAPIKeysRequest.data, selectedState.agentConfigId]);
 
@@ -65,12 +65,12 @@ export const EnrollmentStepAgentConfig: React.FC<Props> = ({ agentConfigs, onKey
             />
           </EuiText>
         }
-        options={agentConfigs.map(config => ({
+        options={agentConfigs.map((config) => ({
           value: config.id,
           text: config.name,
         }))}
         value={selectedState.agentConfigId || undefined}
-        onChange={e =>
+        onChange={(e) =>
           setSelectedState({
             agentConfigId: e.target.value,
             enrollmentAPIKeyId: undefined,
@@ -83,7 +83,7 @@ export const EnrollmentStepAgentConfig: React.FC<Props> = ({ agentConfigs, onKey
       />
       <EuiSpacer size="m" />
       {selectedState.agentConfigId && (
-        <AgentConfigDatasourceBadges agentConfigId={selectedState.agentConfigId} />
+        <AgentConfigPackageBadges agentConfigId={selectedState.agentConfigId} />
       )}
       <EuiSpacer size="m" />
       <EuiButtonEmpty
@@ -101,7 +101,7 @@ export const EnrollmentStepAgentConfig: React.FC<Props> = ({ agentConfigs, onKey
           <EuiSpacer size="m" />
           <EuiSelect
             fullWidth
-            options={filteredEnrollmentAPIKeys.map(key => ({
+            options={filteredEnrollmentAPIKeys.map((key) => ({
               value: key.id,
               text: key.name,
             }))}
@@ -114,7 +114,7 @@ export const EnrollmentStepAgentConfig: React.FC<Props> = ({ agentConfigs, onKey
                 />
               </EuiText>
             }
-            onChange={e => {
+            onChange={(e) => {
               setSelectedState({
                 ...selectedState,
                 enrollmentAPIKeyId: e.target.value,

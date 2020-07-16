@@ -7,6 +7,7 @@
         </div>
         <div class="euiFlexItem euiFlexItem--flexGrowZero">
           <h4
+            data-test-subj="docTableRowDetailsTitle"
             class="euiTitle euiTitle--xsmall"
             i18n-id="discover.docTable.tableRow.detailHeading"
             i18n-default-message="Expanded document"
@@ -30,7 +31,7 @@
           <a
             class="euiLink"
             data-test-subj="docTableRowAction"
-            ng-href="#/discover/doc/{{indexPattern.id}}/{{row._index}}?id={{uriEncodedId}}"
+            ng-href="#/doc/{{indexPattern.id}}/{{row._index}}?id={{uriEncodedId}}"
             i18n-id="discover.docTable.tableRow.viewSingleDocumentLinkText"
             i18n-default-message="View single document"
           ></a>

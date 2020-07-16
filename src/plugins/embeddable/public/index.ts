@@ -28,6 +28,7 @@ export {
   ACTION_EDIT_PANEL,
   Adapters,
   AddPanelAction,
+  ChartActionContext,
   Container,
   ContainerInput,
   ContainerOutput,
@@ -42,14 +43,13 @@ export {
   EmbeddableFactory,
   EmbeddableFactoryDefinition,
   EmbeddableFactoryNotFoundError,
-  EmbeddableFactoryRenderer,
   EmbeddableInput,
   EmbeddableInstanceConfiguration,
   EmbeddableOutput,
   EmbeddablePanel,
   EmbeddableRoot,
-  ValueClickTriggerContext,
-  RangeSelectTriggerContext,
+  ValueClickContext,
+  RangeSelectContext,
   ErrorEmbeddable,
   IContainer,
   IEmbeddable,
@@ -69,6 +69,11 @@ export {
   isSavedObjectEmbeddableInput,
   isRangeSelectTriggerContext,
   isValueClickTriggerContext,
+  EmbeddableStateTransfer,
+  EmbeddableEditorState,
+  EmbeddablePackageState,
+  EmbeddableRenderer,
+  EmbeddableRendererProps,
 } from './lib';
 
 export function plugin(initializerContext: PluginInitializerContext) {
@@ -80,4 +85,5 @@ export {
   EmbeddableStart,
   EmbeddableSetupDependencies,
   EmbeddableStartDependencies,
+  EmbeddablePanelHOC,
 } from './plugin';

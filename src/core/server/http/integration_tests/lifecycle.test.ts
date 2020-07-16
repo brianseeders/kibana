@@ -19,17 +19,18 @@
 
 import supertest from 'supertest';
 import request from 'request';
+import { schema } from '@kbn/config-schema';
 
 import { ensureRawRequest } from '../router';
 import { HttpService } from '../http_service';
 
 import { contextServiceMock } from '../../context/context_service.mock';
-import { loggingServiceMock } from '../../logging/logging_service.mock';
+import { loggingSystemMock } from '../../logging/logging_system.mock';
 import { createHttpServer } from '../test_utils';
 
 let server: HttpService;
 
-let logger: ReturnType<typeof loggingServiceMock.create>;
+let logger: ReturnType<typeof loggingSystemMock.create>;
 
 const contextSetup = contextServiceMock.createSetupContract();
 
@@ -38,7 +39,7 @@ const setupDeps = {
 };
 
 beforeEach(() => {
-  logger = loggingServiceMock.create();
+  logger = loggingSystemMock.create();
   server = createHttpServer({ logger });
 });
 
@@ -75,9 +76,7 @@ describe('OnPreAuth', () => {
     });
     await server.start();
 
-    await supertest(innerServer.listener)
-      .get('/')
-      .expect(200, 'ok');
+    await supertest(innerServer.listener).get('/').expect(200, 'ok');
 
     expect(callingOrder).toEqual(['first', 'second']);
   });
@@ -108,9 +107,7 @@ describe('OnPreAuth', () => {
 
     await server.start();
 
-    await supertest(innerServer.listener)
-      .get('/initial')
-      .expect(200, 'redirected');
+    await supertest(innerServer.listener).get('/initial').expect(200, 'redirected');
 
     expect(urlBeforeForwarding).toBe('/initial');
     expect(urlAfterForwarding).toBe('/redirectUrl');
@@ -132,9 +129,7 @@ describe('OnPreAuth', () => {
     );
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/initial')
-      .expect(302);
+    const result = await supertest(innerServer.listener).get('/initial').expect(302);
 
     expect(result.header.location).toBe(redirectUrl);
   });
@@ -154,9 +149,7 @@ describe('OnPreAuth', () => {
     );
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(401);
+    const result = await supertest(innerServer.listener).get('/').expect(401);
 
     expect(result.header['www-authenticate']).toBe('challenge');
   });
@@ -172,12 +165,10 @@ describe('OnPreAuth', () => {
     });
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(500);
+    const result = await supertest(innerServer.listener).get('/').expect(500);
 
     expect(result.body.message).toBe('An internal server error occurred.');
-    expect(loggingServiceMock.collect(logger).error).toMatchInlineSnapshot(`
+    expect(loggingSystemMock.collect(logger).error).toMatchInlineSnapshot(`
       Array [
         Array [
           [Error: reason],
@@ -195,12 +186,10 @@ describe('OnPreAuth', () => {
     registerOnPreAuth((req, res, t) => ({} as any));
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(500);
+    const result = await supertest(innerServer.listener).get('/').expect(500);
 
     expect(result.body.message).toBe('An internal server error occurred.');
-    expect(loggingServiceMock.collect(logger).error).toMatchInlineSnapshot(`
+    expect(loggingSystemMock.collect(logger).error).toMatchInlineSnapshot(`
       Array [
         Array [
           [Error: Unexpected result from OnPreAuth. Expected OnPreAuthResult or KibanaResponse, but given: [object Object].],
@@ -232,9 +221,40 @@ describe('OnPreAuth', () => {
 
     await server.start();
 
+    await supertest(innerServer.listener).get('/').expect(200, { customField: 'undefined' });
+  });
+
+  it('has no access to request body', async () => {
+    const { registerOnPreAuth, server: innerServer, createRouter } = await server.setup(setupDeps);
+    const router = createRouter('/');
+    let requestBody = null;
+    registerOnPreAuth((req, res, t) => {
+      requestBody = req.body;
+      return t.next();
+    });
+
+    router.post(
+      {
+        path: '/',
+        validate: {
+          body: schema.object({
+            term: schema.string(),
+          }),
+        },
+      },
+      (context, req, res) => res.ok({ body: req.body.term })
+    );
+
+    await server.start();
+
     await supertest(innerServer.listener)
-      .get('/')
-      .expect(200, { customField: 'undefined' });
+      .post('/')
+      .send({
+        term: 'foo',
+      })
+      .expect(200, 'foo');
+
+    expect(requestBody).toStrictEqual({});
   });
 });
 
@@ -257,9 +277,7 @@ describe('OnPostAuth', () => {
     });
     await server.start();
 
-    await supertest(innerServer.listener)
-      .get('/')
-      .expect(200, 'ok');
+    await supertest(innerServer.listener).get('/').expect(200, 'ok');
 
     expect(callingOrder).toEqual(['first', 'second']);
   });
@@ -280,9 +298,7 @@ describe('OnPostAuth', () => {
     );
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/initial')
-      .expect(302);
+    const result = await supertest(innerServer.listener).get('/initial').expect(302);
 
     expect(result.header.location).toBe(redirectUrl);
   });
@@ -301,9 +317,7 @@ describe('OnPostAuth', () => {
     );
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(401);
+    const result = await supertest(innerServer.listener).get('/').expect(401);
 
     expect(result.header['www-authenticate']).toBe('challenge');
   });
@@ -318,12 +332,10 @@ describe('OnPostAuth', () => {
     });
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(500);
+    const result = await supertest(innerServer.listener).get('/').expect(500);
 
     expect(result.body.message).toBe('An internal server error occurred.');
-    expect(loggingServiceMock.collect(logger).error).toMatchInlineSnapshot(`
+    expect(loggingSystemMock.collect(logger).error).toMatchInlineSnapshot(`
       Array [
         Array [
           [Error: reason],
@@ -340,12 +352,10 @@ describe('OnPostAuth', () => {
     registerOnPostAuth((req, res, t) => ({} as any));
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(500);
+    const result = await supertest(innerServer.listener).get('/').expect(500);
 
     expect(result.body.message).toBe('An internal server error occurred.');
-    expect(loggingServiceMock.collect(logger).error).toMatchInlineSnapshot(`
+    expect(loggingSystemMock.collect(logger).error).toMatchInlineSnapshot(`
       Array [
         Array [
           [Error: Unexpected result from OnPostAuth. Expected OnPostAuthResult or KibanaResponse, but given: [object Object].],
@@ -378,9 +388,40 @@ describe('OnPostAuth', () => {
 
     await server.start();
 
+    await supertest(innerServer.listener).get('/').expect(200, { customField: 'undefined' });
+  });
+
+  it('has no access to request body', async () => {
+    const { registerOnPostAuth, server: innerServer, createRouter } = await server.setup(setupDeps);
+    const router = createRouter('/');
+    let requestBody = null;
+    registerOnPostAuth((req, res, t) => {
+      requestBody = req.body;
+      return t.next();
+    });
+
+    router.post(
+      {
+        path: '/',
+        validate: {
+          body: schema.object({
+            term: schema.string(),
+          }),
+        },
+      },
+      (context, req, res) => res.ok({ body: req.body.term })
+    );
+
+    await server.start();
+
     await supertest(innerServer.listener)
-      .get('/')
-      .expect(200, { customField: 'undefined' });
+      .post('/')
+      .send({
+        term: 'foo',
+      })
+      .expect(200, 'foo');
+
+    expect(requestBody).toStrictEqual({});
   });
 });
 
@@ -410,9 +451,7 @@ describe('Auth', () => {
     registerAuth((req, res, t) => t.authenticated());
     await server.start();
 
-    await supertest(innerServer.listener)
-      .get('/')
-      .expect(200, { content: 'ok' });
+    await supertest(innerServer.listener).get('/').expect(200, { content: 'ok' });
   });
 
   it('blocks access to a resource if credentials are not provided', async () => {
@@ -425,9 +464,7 @@ describe('Auth', () => {
     registerAuth((req, res, t) => t.notHandled());
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(401);
+    const result = await supertest(innerServer.listener).get('/').expect(401);
 
     expect(result.body.message).toBe('Unauthorized');
   });
@@ -443,9 +480,7 @@ describe('Auth', () => {
     registerAuth(authenticate);
 
     await server.start();
-    await supertest(innerServer.listener)
-      .get('/')
-      .expect(200, { authRequired: true });
+    await supertest(innerServer.listener).get('/').expect(200, { authRequired: true });
 
     expect(authenticate).toHaveBeenCalledTimes(1);
   });
@@ -463,9 +498,7 @@ describe('Auth', () => {
     registerAuth(authenticate);
 
     await server.start();
-    await supertest(innerServer.listener)
-      .get('/')
-      .expect(200, { authRequired: false });
+    await supertest(innerServer.listener).get('/').expect(200, { authRequired: false });
 
     expect(authenticate).toHaveBeenCalledTimes(0);
   });
@@ -483,9 +516,7 @@ describe('Auth', () => {
     await registerAuth(authenticate);
 
     await server.start();
-    await supertest(innerServer.listener)
-      .get('/')
-      .expect(200, { authRequired: true });
+    await supertest(innerServer.listener).get('/').expect(200, { authRequired: true });
 
     expect(authenticate).toHaveBeenCalledTimes(1);
   });
@@ -498,9 +529,7 @@ describe('Auth', () => {
     registerAuth((req, res) => res.unauthorized());
     await server.start();
 
-    await supertest(innerServer.listener)
-      .get('/')
-      .expect(401);
+    await supertest(innerServer.listener).get('/').expect(401);
   });
 
   it('supports redirecting', async () => {
@@ -516,9 +545,7 @@ describe('Auth', () => {
     );
     await server.start();
 
-    const response = await supertest(innerServer.listener)
-      .get('/')
-      .expect(302);
+    const response = await supertest(innerServer.listener).get('/').expect(302);
     expect(response.header.location).toBe(redirectTo);
   });
 
@@ -530,9 +557,7 @@ describe('Auth', () => {
     registerAuth((req, res, t) => t.redirected({} as any));
     await server.start();
 
-    await supertest(innerServer.listener)
-      .get('/')
-      .expect(500);
+    await supertest(innerServer.listener).get('/').expect(500);
   });
 
   it(`doesn't expose internal error details`, async () => {
@@ -545,12 +570,10 @@ describe('Auth', () => {
     });
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(500);
+    const result = await supertest(innerServer.listener).get('/').expect(500);
 
     expect(result.body.message).toBe('An internal server error occurred.');
-    expect(loggingServiceMock.collect(logger).error).toMatchInlineSnapshot(`
+    expect(loggingSystemMock.collect(logger).error).toMatchInlineSnapshot(`
       Array [
         Array [
           [Error: reason],
@@ -582,9 +605,7 @@ describe('Auth', () => {
 
     await server.start();
 
-    const response = await supertest(innerServer.listener)
-      .get('/')
-      .expect(200);
+    const response = await supertest(innerServer.listener).get('/').expect(200);
 
     expect(response.header['set-cookie']).toBeDefined();
     const cookies = response.header['set-cookie'];
@@ -628,9 +649,7 @@ describe('Auth', () => {
     });
     await server.start();
 
-    const responseToSetCookie = await supertest(innerServer.listener)
-      .get('/')
-      .expect(200);
+    const responseToSetCookie = await supertest(innerServer.listener).get('/').expect(200);
 
     expect(responseToSetCookie.header['set-cookie']).toBeDefined();
 
@@ -680,10 +699,7 @@ describe('Auth', () => {
     await server.start();
 
     const token = 'Basic: user:password';
-    await supertest(innerServer.listener)
-      .get('/')
-      .set('Authorization', token)
-      .expect(200);
+    await supertest(innerServer.listener).get('/').set('Authorization', token).expect(200);
 
     expect(fromRegisterOnPreAuth).toEqual({});
     expect(fromRegisterAuth).toEqual({ authorization: token });
@@ -705,9 +721,7 @@ describe('Auth', () => {
     router.get({ path: '/', validate: false }, (context, req, res) => res.ok());
     await server.start();
 
-    const response = await supertest(innerServer.listener)
-      .get('/')
-      .expect(200);
+    const response = await supertest(innerServer.listener).get('/').expect(200);
 
     expect(response.header['www-authenticate']).toBe(authResponseHeader['www-authenticate']);
   });
@@ -726,9 +740,7 @@ describe('Auth', () => {
     router.get({ path: '/', validate: false }, (context, req, res) => res.badRequest());
     await server.start();
 
-    const response = await supertest(innerServer.listener)
-      .get('/')
-      .expect(400);
+    const response = await supertest(innerServer.listener).get('/').expect(400);
 
     expect(response.header['www-authenticate']).toBe(authResponseHeader['www-authenticate']);
   });
@@ -755,12 +767,10 @@ describe('Auth', () => {
     );
     await server.start();
 
-    const response = await supertest(innerServer.listener)
-      .get('/')
-      .expect(200);
+    const response = await supertest(innerServer.listener).get('/').expect(200);
 
     expect(response.header['www-authenticate']).toBe('from auth interceptor');
-    expect(loggingServiceMock.collect(logger).warn).toMatchInlineSnapshot(`
+    expect(loggingSystemMock.collect(logger).warn).toMatchInlineSnapshot(`
       Array [
         Array [
           "onPreResponseHandler rewrote a response header [www-authenticate].",
@@ -790,12 +800,10 @@ describe('Auth', () => {
     );
     await server.start();
 
-    const response = await supertest(innerServer.listener)
-      .get('/')
-      .expect(400);
+    const response = await supertest(innerServer.listener).get('/').expect(400);
 
     expect(response.header['www-authenticate']).toBe('from auth interceptor');
-    expect(loggingServiceMock.collect(logger).warn).toMatchInlineSnapshot(`
+    expect(loggingSystemMock.collect(logger).warn).toMatchInlineSnapshot(`
       Array [
         Array [
           "onPreResponseHandler rewrote a response header [www-authenticate].",
@@ -819,9 +827,7 @@ describe('Auth', () => {
     );
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/initial')
-      .expect(302);
+    const result = await supertest(innerServer.listener).get('/initial').expect(302);
 
     expect(result.header.location).toBe(redirectUrl);
   });
@@ -841,9 +847,7 @@ describe('Auth', () => {
     );
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(401);
+    const result = await supertest(innerServer.listener).get('/').expect(401);
 
     expect(result.header['www-authenticate']).toBe('challenge');
   });
@@ -858,12 +862,10 @@ describe('Auth', () => {
     });
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(500);
+    const result = await supertest(innerServer.listener).get('/').expect(500);
 
     expect(result.body.message).toBe('An internal server error occurred.');
-    expect(loggingServiceMock.collect(logger).error).toMatchInlineSnapshot(`
+    expect(loggingSystemMock.collect(logger).error).toMatchInlineSnapshot(`
       Array [
         Array [
           [Error: reason],
@@ -880,12 +882,10 @@ describe('Auth', () => {
     registerOnPostAuth((req, res, t) => ({} as any));
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(500);
+    const result = await supertest(innerServer.listener).get('/').expect(500);
 
     expect(result.body.message).toBe('An internal server error occurred.');
-    expect(loggingServiceMock.collect(logger).error).toMatchInlineSnapshot(`
+    expect(loggingSystemMock.collect(logger).error).toMatchInlineSnapshot(`
       Array [
         Array [
           [Error: Unexpected result from OnPostAuth. Expected OnPostAuthResult or KibanaResponse, but given: [object Object].],
@@ -917,14 +917,45 @@ describe('Auth', () => {
 
     await server.start();
 
+    await supertest(innerServer.listener).get('/').expect(200, { customField: 'undefined' });
+  });
+
+  it('has no access to request body', async () => {
+    const { registerAuth, server: innerServer, createRouter } = await server.setup(setupDeps);
+    const router = createRouter('/');
+    let requestBody = null;
+    registerAuth((req, res, t) => {
+      requestBody = req.body;
+      return t.authenticated({});
+    });
+
+    router.post(
+      {
+        path: '/',
+        validate: {
+          body: schema.object({
+            term: schema.string(),
+          }),
+        },
+      },
+      (context, req, res) => res.ok({ body: req.body.term })
+    );
+
+    await server.start();
+
     await supertest(innerServer.listener)
-      .get('/')
-      .expect(200, { customField: 'undefined' });
+      .post('/')
+      .send({
+        term: 'foo',
+      })
+      .expect(200, 'foo');
+
+    expect(requestBody).toStrictEqual({});
   });
 });
 
 describe('OnPreResponse', () => {
-  it('supports registering response inceptors', async () => {
+  it('supports registering response interceptors', async () => {
     const { registerOnPreResponse, server: innerServer, createRouter } = await server.setup(
       setupDeps
     );
@@ -944,9 +975,7 @@ describe('OnPreResponse', () => {
     });
     await server.start();
 
-    await supertest(innerServer.listener)
-      .get('/')
-      .expect(200, 'ok');
+    await supertest(innerServer.listener).get('/').expect(200, 'ok');
 
     expect(callingOrder).toEqual(['first', 'second']);
   });
@@ -974,9 +1003,7 @@ describe('OnPreResponse', () => {
     );
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(200);
+    const result = await supertest(innerServer.listener).get('/').expect(200);
 
     expect(result.header['x-kibana-header']).toBe('value');
     expect(result.header['x-my-header']).toBe('foo');
@@ -1000,11 +1027,9 @@ describe('OnPreResponse', () => {
     );
     await server.start();
 
-    await supertest(innerServer.listener)
-      .get('/')
-      .expect(200);
+    await supertest(innerServer.listener).get('/').expect(200);
 
-    expect(loggingServiceMock.collect(logger).warn).toMatchInlineSnapshot(`
+    expect(loggingSystemMock.collect(logger).warn).toMatchInlineSnapshot(`
       Array [
         Array [
           "onPreResponseHandler rewrote a response header [x-kibana-header].",
@@ -1025,12 +1050,10 @@ describe('OnPreResponse', () => {
     });
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(500);
+    const result = await supertest(innerServer.listener).get('/').expect(500);
 
     expect(result.body.message).toBe('An internal server error occurred.');
-    expect(loggingServiceMock.collect(logger).error).toMatchInlineSnapshot(`
+    expect(loggingSystemMock.collect(logger).error).toMatchInlineSnapshot(`
       Array [
         Array [
           [Error: reason],
@@ -1049,12 +1072,10 @@ describe('OnPreResponse', () => {
     registerOnPreResponse((req, res, t) => ({} as any));
     await server.start();
 
-    const result = await supertest(innerServer.listener)
-      .get('/')
-      .expect(500);
+    const result = await supertest(innerServer.listener).get('/').expect(500);
 
     expect(result.body.message).toBe('An internal server error occurred.');
-    expect(loggingServiceMock.collect(logger).error).toMatchInlineSnapshot(`
+    expect(loggingSystemMock.collect(logger).error).toMatchInlineSnapshot(`
       Array [
         Array [
           [Error: Unexpected result from OnPreResponse. Expected OnPreResponseResult, but given: [object Object].],
@@ -1078,8 +1099,41 @@ describe('OnPreResponse', () => {
 
     await server.start();
 
+    await supertest(innerServer.listener).get('/').expect(200);
+  });
+
+  it('has no access to request body', async () => {
+    const { registerOnPreResponse, server: innerServer, createRouter } = await server.setup(
+      setupDeps
+    );
+    const router = createRouter('/');
+    let requestBody = null;
+    registerOnPreResponse((req, res, t) => {
+      requestBody = req.body;
+      return t.next();
+    });
+
+    router.post(
+      {
+        path: '/',
+        validate: {
+          body: schema.object({
+            term: schema.string(),
+          }),
+        },
+      },
+      (context, req, res) => res.ok({ body: req.body.term })
+    );
+
+    await server.start();
+
     await supertest(innerServer.listener)
-      .get('/')
-      .expect(200);
+      .post('/')
+      .send({
+        term: 'foo',
+      })
+      .expect(200, 'foo');
+
+    expect(requestBody).toStrictEqual({});
   });
 });

@@ -7,19 +7,21 @@
 import {
   staticIndexPatternRoute,
   dynamicIndexPatternRoute,
-  apmIndexPatternTitleRoute
+  apmIndexPatternTitleRoute,
 } from './index_pattern';
 import {
   errorDistributionRoute,
   errorGroupsRoute,
-  errorsRoute
+  errorsRoute,
+  errorRateRoute,
 } from './errors';
 import {
   serviceAgentNameRoute,
   serviceTransactionTypesRoute,
   servicesRoute,
   serviceNodeMetadataRoute,
-  serviceAnnotationsRoute
+  serviceAnnotationsRoute,
+  serviceAnnotationsCreateRoute,
 } from './services';
 import {
   agentConfigurationRoute,
@@ -29,12 +31,12 @@ import {
   listAgentConfigurationEnvironmentsRoute,
   listAgentConfigurationServicesRoute,
   createOrUpdateAgentConfigurationRoute,
-  agentConfigurationAgentNameRoute
+  agentConfigurationAgentNameRoute,
 } from './settings/agent_configuration';
 import {
   apmIndexSettingsRoute,
   apmIndicesRoute,
-  saveApmIndicesRoute
+  saveApmIndicesRoute,
 } from './settings/apm_indices';
 import { metricsChartsRoute } from './metrics';
 import { serviceNodesRoute } from './service_nodes';
@@ -46,7 +48,7 @@ import {
   transactionGroupsDistributionRoute,
   transactionGroupsRoute,
   transactionGroupsAvgDurationByCountry,
-  transactionGroupsAvgDurationByBrowser
+  transactionGroupsAvgDurationByBrowser,
 } from './transaction_groups';
 import {
   errorGroupsLocalFiltersRoute,
@@ -56,7 +58,8 @@ import {
   transactionGroupsLocalFiltersRoute,
   transactionsLocalFiltersRoute,
   serviceNodesLocalFiltersRoute,
-  uiFiltersEnvironmentsRoute
+  uiFiltersEnvironmentsRoute,
+  rumOverviewLocalFiltersRoute,
 } from './ui_filters';
 import { createApi } from './create_api';
 import { serviceMapRoute, serviceMapServiceNodeRoute } from './service_map';
@@ -66,8 +69,24 @@ import {
   updateCustomLinkRoute,
   deleteCustomLinkRoute,
   listCustomLinksRoute,
-  customLinkTransactionRoute
+  customLinkTransactionRoute,
 } from './settings/custom_link';
+import {
+  rumClientMetricsRoute,
+  rumPageViewsTrendRoute,
+  rumPageLoadDistributionRoute,
+  rumPageLoadDistBreakdownRoute,
+  rumServicesRoute,
+} from './rum_client';
+import {
+  observabilityDashboardHasDataRoute,
+  observabilityDashboardDataRoute,
+} from './observability_dashboard';
+import {
+  anomalyDetectionJobsRoute,
+  createAnomalyDetectionJobsRoute,
+  anomalyDetectionEnvironmentsRoute,
+} from './settings/anomaly_detection';
 
 const createApmApi = () => {
   const api = createApi()
@@ -80,6 +99,7 @@ const createApmApi = () => {
     .add(errorDistributionRoute)
     .add(errorGroupsRoute)
     .add(errorsRoute)
+    .add(errorRateRoute)
 
     // Services
     .add(serviceAgentNameRoute)
@@ -87,6 +107,7 @@ const createApmApi = () => {
     .add(servicesRoute)
     .add(serviceNodeMetadataRoute)
     .add(serviceAnnotationsRoute)
+    .add(serviceAnnotationsCreateRoute)
 
     // Agent configuration
     .add(getSingleAgentConfigurationRoute)
@@ -144,7 +165,24 @@ const createApmApi = () => {
     .add(updateCustomLinkRoute)
     .add(deleteCustomLinkRoute)
     .add(listCustomLinksRoute)
-    .add(customLinkTransactionRoute);
+    .add(customLinkTransactionRoute)
+
+    // Rum Overview
+    .add(rumOverviewLocalFiltersRoute)
+    .add(rumPageViewsTrendRoute)
+    .add(rumPageLoadDistributionRoute)
+    .add(rumPageLoadDistBreakdownRoute)
+    .add(rumClientMetricsRoute)
+    .add(rumServicesRoute)
+
+    // Observability dashboard
+    .add(observabilityDashboardHasDataRoute)
+    .add(observabilityDashboardDataRoute)
+
+    // Anomaly detection
+    .add(anomalyDetectionJobsRoute)
+    .add(createAnomalyDetectionJobsRoute)
+    .add(anomalyDetectionEnvironmentsRoute);
 
   return api;
 };

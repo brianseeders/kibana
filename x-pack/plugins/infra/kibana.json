@@ -10,9 +10,10 @@
     "data",
     "dataEnhanced",
     "visTypeTimeseries",
-    "alerting",
+    "alerts",
     "triggers_actions_ui"
   ],
+  "optionalPlugins": ["ml", "observability"],
   "server": true,
   "ui": true,
   "configPath": ["xpack", "infra"]

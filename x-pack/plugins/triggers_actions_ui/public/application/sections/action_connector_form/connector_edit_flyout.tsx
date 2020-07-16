@@ -48,6 +48,7 @@ export const ConnectorEditFlyout = ({
     actionTypeRegistry,
     reloadConnectors,
     docLinks,
+    consumer,
   } = useActionsConnectorsContext();
   const canSave = hasSaveActionsCapability(capabilities);
   const closeFlyout = useCallback(() => setEditFlyoutVisibility(false), [setEditFlyoutVisibility]);
@@ -65,11 +66,11 @@ export const ConnectorEditFlyout = ({
     ...actionTypeModel?.validateConnector(connector).errors,
     ...validateBaseProperties(connector).errors,
   } as IErrorObject;
-  hasErrors = !!Object.keys(errors).find(errorKey => errors[errorKey].length >= 1);
+  hasErrors = !!Object.keys(errors).find((errorKey) => errors[errorKey].length >= 1);
 
   const onActionConnectorSave = async (): Promise<ActionConnector | undefined> =>
     await updateActionConnector({ http, connector, id: connector.id })
-      .then(savedConnector => {
+      .then((savedConnector) => {
         toastNotifications.addSuccess(
           i18n.translate(
             'xpack.triggersActionsUI.sections.editConnectorForm.updateSuccessNotificationText',
@@ -83,7 +84,7 @@ export const ConnectorEditFlyout = ({
         );
         return savedConnector;
       })
-      .catch(errorRes => {
+      .catch((errorRes) => {
         toastNotifications.addDanger(
           errorRes.body?.message ??
             i18n.translate(
@@ -182,6 +183,10 @@ export const ConnectorEditFlyout = ({
             errors={errors}
             actionTypeName={connector.actionType}
             dispatch={dispatch}
+            actionTypeRegistry={actionTypeRegistry}
+            http={http}
+            docLinks={docLinks}
+            consumer={consumer}
           />
         ) : (
           <Fragment>
@@ -194,7 +199,7 @@ export const ConnectorEditFlyout = ({
               )}
             </EuiText>
             <EuiLink
-              href={`${docLinks.ELASTIC_WEBSITE_URL}guide/en/kibana/${docLinks.DOC_LINK_VERSION}/pre-configured-connectors.html`}
+              href={`${docLinks.ELASTIC_WEBSITE_URL}guide/en/kibana/${docLinks.DOC_LINK_VERSION}/pre-configured-action-types-and-connectors.html`}
               target="_blank"
             >
               <FormattedMessage
@@ -251,3 +256,6 @@ export const ConnectorEditFlyout = ({
     </EuiFlyout>
   );
 };
+
+// eslint-disable-next-line import/no-default-export
+export { ConnectorEditFlyout as default };

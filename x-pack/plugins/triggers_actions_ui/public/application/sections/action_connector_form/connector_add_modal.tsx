@@ -25,7 +25,6 @@ import { createActionConnector } from '../../lib/action_connector_api';
 import { TypeRegistry } from '../../type_registry';
 import './connector_add_modal.scss';
 import { PLUGIN } from '../../constants/plugin';
-import { ActionsConnectorsContextProvider } from '../../context/actions_connectors_context';
 import { hasSaveActionsCapability } from '../../lib/capabilities';
 
 interface ConnectorAddModalProps {
@@ -41,6 +40,7 @@ interface ConnectorAddModalProps {
   >;
   capabilities: ApplicationStart['capabilities'];
   docLinks: DocLinksStart;
+  consumer?: string;
 }
 
 export const ConnectorAddModal = ({
@@ -53,6 +53,7 @@ export const ConnectorAddModal = ({
   actionTypeRegistry,
   capabilities,
   docLinks,
+  consumer,
 }: ConnectorAddModalProps) => {
   let hasErrors = false;
   const initialConnector = {
@@ -88,11 +89,11 @@ export const ConnectorAddModal = ({
     ...actionTypeModel?.validateConnector(connector).errors,
     ...validateBaseProperties(connector).errors,
   } as IErrorObject;
-  hasErrors = !!Object.keys(errors).find(errorKey => errors[errorKey].length >= 1);
+  hasErrors = !!Object.keys(errors).find((errorKey) => errors[errorKey].length >= 1);
 
   const onActionConnectorSave = async (): Promise<ActionConnector | undefined> =>
     await createActionConnector({ http, connector })
-      .then(savedConnector => {
+      .then((savedConnector) => {
         if (toastNotifications) {
           toastNotifications.addSuccess(
             i18n.translate(
@@ -108,7 +109,7 @@ export const ConnectorAddModal = ({
         }
         return savedConnector;
       })
-      .catch(errorRes => {
+      .catch((errorRes) => {
         setServerError(errorRes);
         return undefined;
       });
@@ -156,23 +157,17 @@ export const ConnectorAddModal = ({
         </EuiModalHeader>
 
         <EuiModalBody>
-          <ActionsConnectorsContextProvider
-            value={{
-              actionTypeRegistry,
-              http,
-              capabilities,
-              toastNotifications,
-              docLinks,
-            }}
-          >
-            <ActionConnectorForm
-              connector={connector}
-              actionTypeName={actionType.name}
-              dispatch={dispatch}
-              serverError={serverError}
-              errors={errors}
-            />
-          </ActionsConnectorsContextProvider>
+          <ActionConnectorForm
+            connector={connector}
+            actionTypeName={actionType.name}
+            dispatch={dispatch}
+            serverError={serverError}
+            errors={errors}
+            actionTypeRegistry={actionTypeRegistry}
+            docLinks={docLinks}
+            http={http}
+            consumer={consumer}
+          />
         </EuiModalBody>
         <EuiModalFooter>
           <EuiButtonEmpty onClick={closeModal}>

@@ -11,7 +11,7 @@ import { getPackageSavedObjects, getKibanaSavedObject } from '../../services/epm
 const DATA_STREAM_INDEX_PATTERN = 'logs-*-*,metrics-*-*';
 
 export const getListHandler: RequestHandler = async (context, request, response) => {
-  const callCluster = context.core.elasticsearch.dataClient.callAsCurrentUser;
+  const callCluster = context.core.elasticsearch.legacy.client.callAsCurrentUser;
 
   try {
     // Get stats (size on disk) of all potentially matching indices
@@ -31,12 +31,12 @@ export const getListHandler: RequestHandler = async (context, request, response)
             must: [
               {
                 exists: {
-                  field: 'stream.namespace',
+                  field: 'dataset.namespace',
                 },
               },
               {
                 exists: {
-                  field: 'stream.dataset',
+                  field: 'dataset.name',
                 },
               },
             ],
@@ -54,25 +54,19 @@ export const getListHandler: RequestHandler = async (context, request, response)
             aggs: {
               dataset: {
                 terms: {
-                  field: 'stream.dataset',
+                  field: 'dataset.name',
                   size: 1,
                 },
               },
               namespace: {
                 terms: {
-                  field: 'stream.namespace',
+                  field: 'dataset.namespace',
                   size: 1,
                 },
               },
               type: {
                 terms: {
-                  field: 'stream.type',
-                  size: 1,
-                },
-              },
-              package: {
-                terms: {
-                  field: 'event.module',
+                  field: 'dataset.type',
                   size: 1,
                 },
               },
@@ -104,18 +98,22 @@ export const getListHandler: RequestHandler = async (context, request, response)
     const packageSavedObjects = await getPackageSavedObjects(context.core.savedObjects.client);
     const packageMetadata: any = {};
 
-    const dataStreamsPromises = (indexResults as any[]).map(async result => {
+    const dataStreamsPromises = (indexResults as any[]).map(async (result) => {
       const {
         key: indexName,
         dataset: { buckets: datasetBuckets },
         namespace: { buckets: namespaceBuckets },
         type: { buckets: typeBuckets },
-        package: { buckets: packageBuckets },
         last_activity: { value_as_string: lastActivity },
       } = result;
 
-      const pkg = packageBuckets.length ? packageBuckets[0].key : '';
-      const pkgSavedObject = packageSavedObjects.saved_objects.filter(p => p.id === pkg);
+      // We don't have a reliable way to associate index with package ID, so
+      // this is a hack to extract the package ID from the first part of the dataset name
+      // with fallback to extraction from index name
+      const pkg = datasetBuckets.length
+        ? datasetBuckets[0].key.split('.')[0]
+        : indexName.split('-')[1].split('.')[0];
+      const pkgSavedObject = packageSavedObjects.saved_objects.filter((p) => p.id === pkg);
 
       // if
       // - the datastream is associated with a package
@@ -125,7 +123,7 @@ export const getListHandler: RequestHandler = async (context, request, response)
         // then pick the dashboards from the package saved object
         const dashboards =
           pkgSavedObject[0].attributes?.installed?.filter(
-            o => o.type === KibanaAssetType.dashboard
+            (o) => o.type === KibanaAssetType.dashboard
           ) || [];
         // and then pick the human-readable titles from the dashboard saved objects
         const enhancedDashboards = await getEnhancedDashboards(
@@ -138,12 +136,13 @@ export const getListHandler: RequestHandler = async (context, request, response)
           dashboards: enhancedDashboards,
         };
       }
+
       return {
         index: indexName,
         dataset: datasetBuckets.length ? datasetBuckets[0].key : '',
         namespace: namespaceBuckets.length ? namespaceBuckets[0].key : '',
         type: typeBuckets.length ? typeBuckets[0].key : '',
-        package: pkg,
+        package: pkgSavedObject.length ? pkg : '',
         package_version: packageMetadata[pkg] ? packageMetadata[pkg].version : '',
         last_activity: lastActivity,
         size_in_bytes: indexStats[indexName] ? indexStats[indexName].total.store.size_in_bytes : 0,
@@ -170,7 +169,7 @@ const getEnhancedDashboards = async (
   savedObjectsClient: SavedObjectsClientContract,
   dashboards: any[]
 ) => {
-  const dashboardsPromises = dashboards.map(async db => {
+  const dashboardsPromises = dashboards.map(async (db) => {
     const dbSavedObject: any = await getKibanaSavedObject(
       savedObjectsClient,
       KibanaAssetType.dashboard,

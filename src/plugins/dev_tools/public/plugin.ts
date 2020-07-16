@@ -17,8 +17,13 @@
  * under the License.
  */
 
-import { CoreSetup, Plugin } from 'kibana/public';
+import { BehaviorSubject } from 'rxjs';
+import { Plugin, CoreSetup, AppMountParameters } from 'src/core/public';
+import { AppUpdater } from 'kibana/public';
+import { i18n } from '@kbn/i18n';
 import { sortBy } from 'lodash';
+
+import { AppNavLinkStatus, DEFAULT_APP_CATEGORIES } from '../../../core/public';
 import { KibanaLegacySetup } from '../../kibana_legacy/public';
 import { CreateDevToolArgs, DevToolApp, createDevToolApp } from './dev_tool';
 
@@ -38,42 +43,39 @@ export interface DevToolsSetup {
   register: (devTool: CreateDevToolArgs) => DevToolApp;
 }
 
-export interface DevToolsStart {
-  /**
-   * Returns all registered dev tools in an ordered array.
-   * This function is only exposed because the dev tools app
-   * actually rendering the tool has to stay in the legacy platform
-   * for now. Once it is moved into this plugin, this function
-   * becomes an implementation detail.
-   * @deprecated
-   */
-  getSortedDevTools: () => readonly DevToolApp[];
-}
-
-export class DevToolsPlugin implements Plugin<DevToolsSetup, DevToolsStart> {
+export class DevToolsPlugin implements Plugin<DevToolsSetup, void> {
   private readonly devTools = new Map<string, DevToolApp>();
+  private appStateUpdater = new BehaviorSubject<AppUpdater>(() => ({}));
 
   private getSortedDevTools(): readonly DevToolApp[] {
     return sortBy([...this.devTools.values()], 'order');
   }
 
-  public setup(core: CoreSetup, { kibanaLegacy }: { kibanaLegacy: KibanaLegacySetup }) {
-    kibanaLegacy.registerLegacyApp({
+  public setup(coreSetup: CoreSetup, { kibanaLegacy }: { kibanaLegacy: KibanaLegacySetup }) {
+    const { application: applicationSetup, getStartServices } = coreSetup;
+
+    applicationSetup.register({
       id: 'dev_tools',
-      title: 'Dev Tools',
-      mount: async (appMountContext, params) => {
-        if (!this.getSortedDevTools) {
-          throw new Error('not started yet');
-        }
+      title: i18n.translate('devTools.devToolsTitle', {
+        defaultMessage: 'Dev Tools',
+      }),
+      updater$: this.appStateUpdater,
+      euiIconType: 'devToolsApp',
+      order: 9001,
+      category: DEFAULT_APP_CATEGORIES.management,
+      mount: async (params: AppMountParameters) => {
+        const { element, history } = params;
+        element.classList.add('devAppWrapper');
+
+        const [core] = await getStartServices();
+        const { application, chrome } = core;
+
         const { renderApp } = await import('./application');
-        return renderApp(
-          params.element,
-          appMountContext,
-          params.appBasePath,
-          this.getSortedDevTools()
-        );
+        return renderApp(element, application, chrome, history, this.getSortedDevTools());
       },
     });
+
+    kibanaLegacy.forwardApp('dev_tools', 'dev_tools');
 
     return {
       register: (devToolArgs: CreateDevToolArgs) => {
@@ -91,9 +93,9 @@ export class DevToolsPlugin implements Plugin<DevToolsSetup, DevToolsStart> {
   }
 
   public start() {
-    return {
-      getSortedDevTools: this.getSortedDevTools.bind(this),
-    };
+    if (this.getSortedDevTools().length === 0) {
+      this.appStateUpdater.next(() => ({ navLinkStatus: AppNavLinkStatus.hidden }));
+    }
   }
 
   public stop() {}

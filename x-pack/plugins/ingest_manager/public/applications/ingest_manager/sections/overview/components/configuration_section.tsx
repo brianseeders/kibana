@@ -15,15 +15,15 @@ import {
 } from '@elastic/eui';
 import { OverviewPanel } from './overview_panel';
 import { OverviewStats } from './overview_stats';
-import { useLink, useGetDatasources } from '../../../hooks';
+import { useLink, useGetPackageConfigs } from '../../../hooks';
 import { AgentConfig } from '../../../types';
-import { AGENT_CONFIG_PATH } from '../../../constants';
 import { Loading } from '../../fleet/components';
 
 export const OverviewConfigurationSection: React.FC<{ agentConfigs: AgentConfig[] }> = ({
   agentConfigs,
 }) => {
-  const datasourcesRequest = useGetDatasources({
+  const { getHref } = useLink();
+  const packageConfigsRequest = useGetPackageConfigs({
     page: 1,
     perPage: 10000,
   });
@@ -36,11 +36,11 @@ export const OverviewConfigurationSection: React.FC<{ agentConfigs: AgentConfig[
             <h2>
               <FormattedMessage
                 id="xpack.ingestManager.overviewPageConfigurationsPanelTitle"
-                defaultMessage="Configurations"
+                defaultMessage="Agent configurations"
               />
             </h2>
           </EuiTitle>
-          <EuiButtonEmpty size="xs" flush="right" href={useLink(AGENT_CONFIG_PATH)}>
+          <EuiButtonEmpty size="xs" flush="right" href={getHref('configurations_list')}>
             <FormattedMessage
               id="xpack.ingestManager.overviewPageConfigurationsPanelAction"
               defaultMessage="View configs"
@@ -48,14 +48,14 @@ export const OverviewConfigurationSection: React.FC<{ agentConfigs: AgentConfig[
           </EuiButtonEmpty>
         </header>
         <OverviewStats>
-          {datasourcesRequest.isLoading ? (
+          {packageConfigsRequest.isLoading ? (
             <Loading />
           ) : (
             <>
               <EuiDescriptionListTitle>
                 <FormattedMessage
                   id="xpack.ingestManager.overviewConfigTotalTitle"
-                  defaultMessage="Total configs"
+                  defaultMessage="Total available"
                 />
               </EuiDescriptionListTitle>
               <EuiDescriptionListDescription>
@@ -63,12 +63,12 @@ export const OverviewConfigurationSection: React.FC<{ agentConfigs: AgentConfig[
               </EuiDescriptionListDescription>
               <EuiDescriptionListTitle>
                 <FormattedMessage
-                  id="xpack.ingestManager.overviewDatasourceTitle"
-                  defaultMessage="Data sources"
+                  id="xpack.ingestManager.overviewPackageConfigTitle"
+                  defaultMessage="Configured integrations"
                 />
               </EuiDescriptionListTitle>
               <EuiDescriptionListDescription>
-                <EuiI18nNumber value={datasourcesRequest.data?.total ?? 0} />
+                <EuiI18nNumber value={packageConfigsRequest.data?.total ?? 0} />
               </EuiDescriptionListDescription>
             </>
           )}
