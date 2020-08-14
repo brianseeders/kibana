@@ -15,6 +15,7 @@ def EXECUTIONS = params.NUMBER_EXECUTIONS.toInteger()
 def AGENT_COUNT = getAgentCount(EXECUTIONS)
 
 def SLACK_HANDLE = (params.SLACK_HANDLE ?: 'brian.seeders').replaceAll('@', '')
+SLACK_HANDLE = SLACK_HANDLE ? "@${SLACK_HANDLE}" : ""
 
 def worker = getWorkerFromParams(IS_XPACK, JOB, CI_GROUP)
 
