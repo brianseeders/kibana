@@ -14,6 +14,8 @@ def CI_GROUP = JOB_PARTS.size() > 2 ? JOB_PARTS[2] : ''
 def EXECUTIONS = params.NUMBER_EXECUTIONS.toInteger()
 def AGENT_COUNT = getAgentCount(EXECUTIONS)
 
+def SLACK_HANDLE = (params.SLACK_HANDLE ?: 'brian.seeders').replaceAll('@', '')
+
 def worker = getWorkerFromParams(IS_XPACK, JOB, CI_GROUP)
 
 def workerFailures = []
@@ -22,39 +24,41 @@ currentBuild.displayName += trunc(" ${params.GITHUB_OWNER}:${params.branch_speci
 currentBuild.description = "${params.CI_GROUP}<br />Agents: ${AGENT_COUNT}<br />Executions: ${params.NUMBER_EXECUTIONS}"
 
 kibanaPipeline(timeoutMinutes: 180) {
-  def agents = [:]
-  for(def agentNumber = 1; agentNumber <= AGENT_COUNT; agentNumber++) {
-    def agentNumberInside = agentNumber
-    def agentExecutions = floor(EXECUTIONS/AGENT_COUNT) + (agentNumber <= EXECUTIONS%AGENT_COUNT ? 1 : 0)
-    agents["agent-${agentNumber}"] = {
-      catchErrors {
-        print "Agent ${agentNumberInside} - ${agentExecutions} executions"
+  slackNotifications.onFailure(disabled: !SLACK_HANDLE, channel: SLACK_HANDLE) {
+    def agents = [:]
+    for(def agentNumber = 1; agentNumber <= AGENT_COUNT; agentNumber++) {
+      def agentNumberInside = agentNumber
+      def agentExecutions = floor(EXECUTIONS/AGENT_COUNT) + (agentNumber <= EXECUTIONS%AGENT_COUNT ? 1 : 0)
+      agents["agent-${agentNumber}"] = {
+        catchErrors {
+          print "Agent ${agentNumberInside} - ${agentExecutions} executions"
 
-        workers.functional('flaky-test-runner', {
-          if (NEED_BUILD) {
-            if (!IS_XPACK) {
-              kibanaPipeline.buildOss()
-              if (CI_GROUP == '1') {
-                runbld("./test/scripts/jenkins_build_kbn_sample_panel_action.sh", "Build kbn tp sample panel action for ciGroup1")
+          workers.functional('flaky-test-runner', {
+            if (NEED_BUILD) {
+              if (!IS_XPACK) {
+                kibanaPipeline.buildOss()
+                if (CI_GROUP == '1') {
+                  runbld("./test/scripts/jenkins_build_kbn_sample_panel_action.sh", "Build kbn tp sample panel action for ciGroup1")
+                }
+              } else {
+                kibanaPipeline.buildXpack()
               }
-            } else {
-              kibanaPipeline.buildXpack()
             }
-          }
-        }, getWorkerMap(agentNumberInside, agentExecutions, worker, workerFailures))()
+          }, getWorkerMap(agentNumberInside, agentExecutions, worker, workerFailures))()
+        }
       }
     }
-  }
 
-  parallel(agents)
+    parallel(agents)
 
-  currentBuild.description += ", Failures: ${workerFailures.size()}"
+    currentBuild.description += ", Failures: ${workerFailures.size()}"
 
-  if (workerFailures.size() > 0) {
-    print "There were ${workerFailures.size()} test suite failures."
-    print "The executions that failed were:"
-    print workerFailures.join("\n")
-    print "Please check 'Test Result' and 'Pipeline Steps' pages for more info"
+    if (workerFailures.size() > 0) {
+      print "There were ${workerFailures.size()} test suite failures."
+      print "The executions that failed were:"
+      print workerFailures.join("\n")
+      print "Please check 'Test Result' and 'Pipeline Steps' pages for more info"
+    }
   }
 }
 
