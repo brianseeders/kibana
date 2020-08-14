@@ -25,6 +25,7 @@ currentBuild.description = "${params.CI_GROUP}<br />Agents: ${AGENT_COUNT}<br />
 
 kibanaPipeline(timeoutMinutes: 180) {
   slackNotifications.onFailure(disabled: !SLACK_HANDLE, channel: SLACK_HANDLE) {
+    error 'Test error'
     def agents = [:]
     for(def agentNumber = 1; agentNumber <= AGENT_COUNT; agentNumber++) {
       def agentNumberInside = agentNumber
