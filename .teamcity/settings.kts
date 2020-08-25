@@ -25,7 +25,7 @@ project {
 
   features {
     feature {
-      id = "KIBANA_CLOUD_IMAGE"
+      id = "KIBANA_BRIANSEEDERS"
       type = "CloudImage"
       param("subnet", "default")
       param("growingId", "true")
@@ -34,7 +34,7 @@ project {
       param("network", "default")
       param("preemptible", "false")
       param("zone", "us-central1-a")
-      param("profileId", "KIBANA_CLOUD_PROFILE")
+      param("profileId", "kibana-brianseeders")
       param("diskType", "pd-ssd")
       param("sourceImage", "teamcity-agent-1596749170")
 //      param("sourceImageFamily", "kibana-teamcity-dev-agents")
@@ -45,11 +45,10 @@ project {
     }
 
     feature {
-      id = "KIBANA_CLOUD_PROFILE"
+      id = "kibana-brianseeders"
       type = "CloudProfile"
       param("profileServerUrl", "")
-      param("system.cloud.profile_id", "KIBANA_CLOUD_PROFILE")
-//      param("agent_pool_id", "-2") // TODO currently default pool
+      param("system.cloud.profile_id", "kibana-brianseeders")
       param("total-work-time", "")
       param("credentialsType", "key")
       param("description", "")
@@ -57,7 +56,7 @@ project {
       param("terminate-after-build", "true")
       param("enabled", "true")
       param("agentPushPreset", "")
-      param("profileId", "KIBANA_CLOUD_PROFILE")
+      param("profileId", "kibana-brianseeders")
       param("name", "kibana-brianseeders")
       param("next-hour", "")
       param("terminate-idle-time", "15")
