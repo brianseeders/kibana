@@ -3,6 +3,10 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.*
 version = "2020.1"
 
 project(Project {
+  params {
+    param("teamcity.ui.settings.readOnly", "true")
+  }
+
   features {
     feature {
       type = "CloudImage"
