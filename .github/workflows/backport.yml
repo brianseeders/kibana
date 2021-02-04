@@ -30,6 +30,6 @@ jobs:
       # Switch to master?
 
       - name: backport
-        run: backport --username "${{ github.actor }}" --accessToken "${{ secrets.GITHUB_TOKEN }}" --dryRun --ci --pr "$PR_NUMBER" --labels backport --verbose
+        run: backport --username "${{ github.actor }}" --accessToken "${{ secrets.GITHUB_TOKEN }}" --dryRun --ci --pr "28" --labels backport --verbose --upstream "brianseeders/kibana"
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
