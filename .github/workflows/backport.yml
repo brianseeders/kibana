@@ -1,0 +1,26 @@
+on:
+  pull_request:
+    branches:
+      - master
+    types: [closed]
+
+jobs:
+  backport:
+    name: Backport
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      # - name: Checkout code
+      #   uses: actions/checkout@v2
+
+      # - name: Use Node.js 14.x
+      #   uses: actions/setup-node@v1
+      #   with:
+      #     node-version: 14.x
+
+      # - run: npm install -g backport
+
+      - run: echo "$PR_LABELS"
+        env:
+          PR_LABELS: ${{ github.event.pull_request.labels }}
