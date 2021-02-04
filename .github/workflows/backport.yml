@@ -11,18 +11,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # - name: Checkout code
-      #   uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      # - name: Use Node.js 14.x
-      #   uses: actions/setup-node@v1
-      #   with:
-      #     node-version: 14.x
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
 
-      # - run: npm install -g backport
+      - run: npm install -g backport
 
       - name: Labels
         run: |
           echo "$PR_LABELS"
         env:
           PR_LABELS: ${{ toJSON(github.event.pull_request.labels) }}
+
+      - name: backport
+        run: backport --dryRun --ci --pr "$PR_NUMBER" --labels backport --verbose
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
