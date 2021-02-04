@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout master/upstream?
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -27,9 +28,7 @@ jobs:
         env:
           PR_LABELS: ${{ toJSON(github.event.pull_request.labels) }}
 
-      # Switch to master?
-
       - name: backport
-        run: backport --username "${{ github.actor }}" --accessToken "${{ secrets.GITHUB_TOKEN }}" --dryRun --ci --pr "28" --labels backport --verbose --upstream "brianseeders/kibana"
+        run: backport --username "${{ github.actor }}" --accessToken "${{ secrets.GITHUB_TOKEN }}" --ci --pr "28" --labels backport --verbose --upstream "brianseeders/kibana"
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
