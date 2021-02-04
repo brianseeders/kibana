@@ -24,4 +24,4 @@ jobs:
       - run: |
           echo "$PR_LABELS"
         env:
-          PR_LABELS: ${{ github.event.pull_request.labels }}
+          PR_LABELS: ${{ toJSON(github.event.pull_request.labels) }}
